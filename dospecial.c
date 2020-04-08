@@ -973,13 +973,41 @@ default:
                     "psfile", ValStr);
            specerror(errbuf);
          } else {
-           if (strlen(ValStr) >= PSFILESIZ) {
+wchar_t xchr[256];
+#include "/home/user/ctex/mapping"
+
+           int utf8len = 0;
+           for (const char *ValStrPtr=ValStr; *ValStrPtr!='\0'; ValStrPtr++) {
+             if ((unsigned char) *ValStrPtr <= 127) {
+               utf8len += 1;
+             }
+             else {
+               char mb[MB_CUR_MAX];
+               utf8len += wctomb(mb, xchr[(unsigned char) *ValStrPtr]);
+             }
+           }
+           char ValStrUTF[20];
+           //TODO: convert from ValStr to ValStrUTF part of ValStr which will fit and put
+           // ValStrUTF to sprintf instead of ValStr
+           if (utf8len >= PSFILESIZ) {
                sprintf(errbuf, 
            "! PS filename (%.20s...) in \\special longer than %d characters",
                        ValStr, PSFILESIZ);
 	       error(errbuf);
            }
-           strcpy(psfile, ValStr);
+           char *psfileptr = psfile;
+           for (const char *ValStrPtr=ValStr; *ValStrPtr!='\0'; ValStrPtr++) {
+             if ((unsigned char) *ValStrPtr <= 127) {
+               *psfileptr++ = *ValStrPtr;
+             }
+             else {
+               char mb[MB_CUR_MAX];
+               int len = wctomb(mb, xchr[(unsigned char) *ValStrPtr]);
+               for (int i = 0; i < len; i++)
+                 *psfileptr++ = mb[i];
+             }
+           }
+           *psfileptr = '\0';
          }
          task = tasks[j];
          break;

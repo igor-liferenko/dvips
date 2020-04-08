@@ -1,0 +1,167 @@
+--- log	2020-04-07 18:59:40.647923740 +0700
++++ ../log	2020-04-07 19:00:28.623875085 +0700
+@@ -1,9 +1,9 @@
+ make -C squeeze
+-make[1]: Entering directory '/home/user/dvips/squeeze'
+-gcc -DPACKAGE_NAME=\"dvipsk\ squeeze\" -DPACKAGE_TARNAME=\"dvipsk-squeeze\" -DPACKAGE_VERSION=\"5.97\" -DPACKAGE_STRING=\"dvipsk\ squeeze\ 5.97\" -DPACKAGE_BUGREPORT=\"tex-k@tug.org\" -DPACKAGE_URL=\"\" -DPACKAGE=\"dvipsk-squeeze\" -DVERSION=\"5.97\" -I. -I../../../../texk/dvipsk/squeeze   -Wdate-time -D_FORTIFY_SOURCE=2 -Wimplicit -Wreturn-type -g -O2 -fdebug-prefix-map=/usr/local/src/texlive-bin-2019.20190605.51237=. -fstack-protector-strong -Wformat -Werror=format-security -c -o squeeze.o squeeze.c
++make[1]: Entering directory '/root/x/y/z/dvipsk/squeeze'
++gcc -DPACKAGE_NAME=\"dvipsk\ squeeze\" -DPACKAGE_TARNAME=\"dvipsk-squeeze\" -DPACKAGE_VERSION=\"5.97\" -DPACKAGE_STRING=\"dvipsk\ squeeze\ 5.97\" -DPACKAGE_BUGREPORT=\"tex-k@tug.org\" -DPACKAGE_URL=\"\" -DPACKAGE=\"dvipsk-squeeze\" -DVERSION=\"5.97\" -I. -I../squeeze   -Wdate-time -D_FORTIFY_SOURCE=2 -Wimplicit -Wreturn-type -g -O2 -fdebug-prefix-map=/usr/local/src/texlive-bin-2019.20190605.51237=. -fstack-protector-strong -Wformat -Werror=format-security -c -o squeeze.o ../../../../texk/dvipsk/squeeze/squeeze.c
+ gcc -Wimplicit -Wreturn-type -g -O2 -fdebug-prefix-map=/usr/local/src/texlive-bin-2019.20190605.51237=. -fstack-protector-strong -Wformat -Werror=format-security  -Wl,-z,relro -o squeeze squeeze.o  
+ echo timestamp >stamp-squeeze
+-make[1]: Leaving directory '/home/user/dvips/squeeze'
++make[1]: Leaving directory '/root/x/y/z/dvipsk/squeeze'
+ gcc -DHAVE_CONFIG_H -I. -I../../../texk/dvipsk  -I/usr/local/src/texlive-bin-2019.20190605.51237/Work/texk -I/usr/local/src/texlive-bin-2019.20190605.51237/texk -DUNIX -DKPATHSEA -DSHIFTLOWCHARS -Wdate-time -D_FORTIFY_SOURCE=2 -Wimplicit -Wreturn-type -g -O2 -fdebug-prefix-map=/usr/local/src/texlive-bin-2019.20190605.51237=. -fstack-protector-strong -Wformat -Werror=format-security -c -o bbox.o bbox.c
+ gcc -DHAVE_CONFIG_H -I. -I../../../texk/dvipsk  -I/usr/local/src/texlive-bin-2019.20190605.51237/Work/texk -I/usr/local/src/texlive-bin-2019.20190605.51237/texk -DUNIX -DKPATHSEA -DSHIFTLOWCHARS -Wdate-time -D_FORTIFY_SOURCE=2 -Wimplicit -Wreturn-type -g -O2 -fdebug-prefix-map=/usr/local/src/texlive-bin-2019.20190605.51237=. -fstack-protector-strong -Wformat -Werror=format-security -c -o color.o color.c
+ gcc -DHAVE_CONFIG_H -I. -I../../../texk/dvipsk  -I/usr/local/src/texlive-bin-2019.20190605.51237/Work/texk -I/usr/local/src/texlive-bin-2019.20190605.51237/texk -DUNIX -DKPATHSEA -DSHIFTLOWCHARS -Wdate-time -D_FORTIFY_SOURCE=2 -Wimplicit -Wreturn-type -g -O2 -fdebug-prefix-map=/usr/local/src/texlive-bin-2019.20190605.51237=. -fstack-protector-strong -Wformat -Werror=format-security -c -o dopage.o dopage.c
+@@ -14,70 +14,72 @@
+ gcc -DHAVE_CONFIG_H -I. -I../../../texk/dvipsk  -I/usr/local/src/texlive-bin-2019.20190605.51237/Work/texk -I/usr/local/src/texlive-bin-2019.20190605.51237/texk -DUNIX -DKPATHSEA -DSHIFTLOWCHARS -Wdate-time -D_FORTIFY_SOURCE=2 -Wimplicit -Wreturn-type -g -O2 -fdebug-prefix-map=/usr/local/src/texlive-bin-2019.20190605.51237=. -fstack-protector-strong -Wformat -Werror=format-security -c -o drawPS.o drawPS.c
+ gcc -DHAVE_CONFIG_H -I. -I../../../texk/dvipsk  -I/usr/local/src/texlive-bin-2019.20190605.51237/Work/texk -I/usr/local/src/texlive-bin-2019.20190605.51237/texk -DUNIX -DKPATHSEA -DSHIFTLOWCHARS -Wdate-time -D_FORTIFY_SOURCE=2 -Wimplicit -Wreturn-type -g -O2 -fdebug-prefix-map=/usr/local/src/texlive-bin-2019.20190605.51237=. -fstack-protector-strong -Wformat -Werror=format-security -c -o dviinput.o dviinput.c
+ gcc -DHAVE_CONFIG_H -I. -I../../../texk/dvipsk  -I/usr/local/src/texlive-bin-2019.20190605.51237/Work/texk -I/usr/local/src/texlive-bin-2019.20190605.51237/texk -DUNIX -DKPATHSEA -DSHIFTLOWCHARS -Wdate-time -D_FORTIFY_SOURCE=2 -Wimplicit -Wreturn-type -g -O2 -fdebug-prefix-map=/usr/local/src/texlive-bin-2019.20190605.51237=. -fstack-protector-strong -Wformat -Werror=format-security -c -o dvips.o dvips.c
+-dvips.c: In function ‘queryargs’:
+-dvips.c:569:4: warning: ignoring return value of ‘fgets’, declared with attribute warn_unused_result [-Wunused-result]
+-  569 |    fgets(queryline,256,stdin);
+-      |    ^~~~~~~~~~~~~~~~~~~~~~~~~~
++dvips.c: In function 'queryargs':
++dvips.c:569:4: warning: ignoring return value of 'fgets', declared with attribute warn_unused_result [-Wunused-result]
++    fgets(queryline,256,stdin);
++    ^~~~~~~~~~~~~~~~~~~~~~~~~~
+ gcc -DHAVE_CONFIG_H -I. -I../../../texk/dvipsk  -I/usr/local/src/texlive-bin-2019.20190605.51237/Work/texk -I/usr/local/src/texlive-bin-2019.20190605.51237/texk -DUNIX -DKPATHSEA -DSHIFTLOWCHARS -Wdate-time -D_FORTIFY_SOURCE=2 -Wimplicit -Wreturn-type -g -O2 -fdebug-prefix-map=/usr/local/src/texlive-bin-2019.20190605.51237=. -fstack-protector-strong -Wformat -Werror=format-security -c -o emspecial.o emspecial.c
+-emspecial.c: In function ‘PCXreadhead’:
+-emspecial.c:424:2: warning: ignoring return value of ‘fread’, declared with attribute warn_unused_result [-Wunused-result]
+-  424 |  fread(pcxh->pal, 1, 48, pcxf);
+-      |  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-emspecial.c:429:2: warning: ignoring return value of ‘fread’, declared with attribute warn_unused_result [-Wunused-result]
+-  429 |  fread(pcxh->fill, 1, 58, pcxf);
+-      |  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-emspecial.c: In function ‘mspgraph’:
+-emspecial.c:898:2: warning: ignoring return value of ‘fread’, declared with attribute warn_unused_result [-Wunused-result]
+-  898 |  fread(head.id, 1, 4, f);
+-      |  ^~~~~~~~~~~~~~~~~~~~~~~
+-emspecial.c: In function ‘MSP_1_ps’:
+-emspecial.c:883:3: warning: ignoring return value of ‘fread’, declared with attribute warn_unused_result [-Wunused-result]
+-  883 |   fread(line, 1, tobyte(wide), f);
+-      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-emspecial.c: In function ‘bmpgraph’:
+-emspecial.c:1167:2: warning: ignoring return value of ‘fread’, declared with attribute warn_unused_result [-Wunused-result]
+- 1167 |  fread(bmfh.type, 1, 2, f);
+-      |  ^~~~~~~~~~~~~~~~~~~~~~~~~
+-emspecial.c: In function ‘emspecial’:
+-emspecial.c:1455:45: warning: ‘%s’ directive output may be truncated writing up to 499 bytes into a region of size 490 [-Wformat-truncation=]
+-  303 |        emgraph(emstr,emwidth,emheight);
+-      |                ~~~~~                         
+-......
+- 1455 |                                  "em:graph: %s: File not found", filename);
+-      |                                             ^~
+-In file included from /usr/include/stdio.h:867,
+-                 from /usr/local/src/texlive-bin-2019.20190605.51237/texk/kpathsea/c-std.h:34,
+-                 from /usr/local/src/texlive-bin-2019.20190605.51237/texk/kpathsea/config.h:88,
++emspecial.c: In function 'PCXreadhead':
++emspecial.c:424:2: warning: ignoring return value of 'fread', declared with attribute warn_unused_result [-Wunused-result]
++  fread(pcxh->pal, 1, 48, pcxf);
++  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++emspecial.c:429:2: warning: ignoring return value of 'fread', declared with attribute warn_unused_result [-Wunused-result]
++  fread(pcxh->fill, 1, 58, pcxf);
++  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++emspecial.c: In function 'mspgraph':
++emspecial.c:898:2: warning: ignoring return value of 'fread', declared with attribute warn_unused_result [-Wunused-result]
++  fread(head.id, 1, 4, f);
++  ^~~~~~~~~~~~~~~~~~~~~~~
++emspecial.c: In function 'MSP_1_ps':
++emspecial.c:883:3: warning: ignoring return value of 'fread', declared with attribute warn_unused_result [-Wunused-result]
++   fread(line, 1, tobyte(wide), f);
++   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++emspecial.c: In function 'bmpgraph':
++emspecial.c:1167:2: warning: ignoring return value of 'fread', declared with attribute warn_unused_result [-Wunused-result]
++  fread(bmfh.type, 1, 2, f);
++  ^~~~~~~~~~~~~~~~~~~~~~~~~
++emspecial.c: In function 'emspecial':
++emspecial.c:1455:45: warning: '%s' directive output may be truncated writing up to 499 bytes into a region of size 490 [-Wformat-truncation=]
++emspecial.c:303:16:
++        emgraph(emstr,emwidth,emheight);
++                ~~~~~                         
++emspecial.c:1455:45:
++                                  "em:graph: %s: File not found", filename);
++                                             ^~
++In file included from /usr/include/stdio.h:873,
++                 from /usr/include/kpathsea/c-std.h:34,
++                 from /usr/include/kpathsea/config.h:88,
+                  from config.h:8,
+                  from dvips.h:21,
+                  from emspecial.c:5:
+-/usr/include/x86_64-linux-gnu/bits/stdio2.h:67:10: note: ‘__builtin___snprintf_chk’ output between 27 and 526 bytes into a destination of size 500
+-   67 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+-      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-   68 |        __bos (__s), __fmt, __va_arg_pack ());
+-      |        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-emspecial.c:1455:45: warning: ‘%s’ directive output may be truncated writing up to 499 bytes into a region of size 490 [-Wformat-truncation=]
+-  303 |        emgraph(emstr,emwidth,emheight);
+-      |                ~~~~~                         
+-......
+- 1455 |                                  "em:graph: %s: File not found", filename);
+-      |                                             ^~
+-In file included from /usr/include/stdio.h:867,
+-                 from /usr/local/src/texlive-bin-2019.20190605.51237/texk/kpathsea/c-std.h:34,
+-                 from /usr/local/src/texlive-bin-2019.20190605.51237/texk/kpathsea/config.h:88,
++/usr/include/x86_64-linux-gnu/bits/stdio2.h:67:10: note: '__builtin___snprintf_chk' output between 27 and 526 bytes into a destination of size 500
++   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
++          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++        __bos (__s), __fmt, __va_arg_pack ());
++        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++emspecial.c:1455:45: warning: '%s' directive output may be truncated writing up to 499 bytes into a region of size 490 [-Wformat-truncation=]
++emspecial.c:303:16:
++        emgraph(emstr,emwidth,emheight);
++                ~~~~~                         
++emspecial.c:1455:45:
++                                  "em:graph: %s: File not found", filename);
++                                             ^~
++In file included from /usr/include/stdio.h:873,
++                 from /usr/include/kpathsea/c-std.h:34,
++                 from /usr/include/kpathsea/config.h:88,
+                  from config.h:8,
+                  from dvips.h:21,
+                  from emspecial.c:5:
+-/usr/include/x86_64-linux-gnu/bits/stdio2.h:67:10: note: ‘__builtin___snprintf_chk’ output between 27 and 526 bytes into a destination of size 500
+-   67 |   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
+-      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-   68 |        __bos (__s), __fmt, __va_arg_pack ());
+-      |        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++/usr/include/x86_64-linux-gnu/bits/stdio2.h:67:10: note: '__builtin___snprintf_chk' output between 27 and 526 bytes into a destination of size 500
++   return __builtin___snprintf_chk (__s, __n, __USE_FORTIFY_LEVEL - 1,
++          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++        __bos (__s), __fmt, __va_arg_pack ());
++        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ gcc -DHAVE_CONFIG_H -I. -I../../../texk/dvipsk  -I/usr/local/src/texlive-bin-2019.20190605.51237/Work/texk -I/usr/local/src/texlive-bin-2019.20190605.51237/texk -DUNIX -DKPATHSEA -DSHIFTLOWCHARS -Wdate-time -D_FORTIFY_SOURCE=2 -Wimplicit -Wreturn-type -g -O2 -fdebug-prefix-map=/usr/local/src/texlive-bin-2019.20190605.51237=. -fstack-protector-strong -Wformat -Werror=format-security -c -o finclude.o finclude.c
+-finclude.c: In function ‘scanfontcomments’:
+-finclude.c:428:8: warning: ignoring return value of ‘fgets’, declared with attribute warn_unused_result [-Wunused-result]
+-  428 |        fgets(p,500,f); /* throw away a partial line. */
+-      |        ^~~~~~~~~~~~~~
++finclude.c: In function 'scanfontcomments':
++finclude.c:428:8: warning: ignoring return value of 'fgets', declared with attribute warn_unused_result [-Wunused-result]
++        fgets(p,500,f); /* throw away a partial line. */
++        ^~~~~~~~~~~~~~
+ gcc -DHAVE_CONFIG_H -I. -I../../../texk/dvipsk  -I/usr/local/src/texlive-bin-2019.20190605.51237/Work/texk -I/usr/local/src/texlive-bin-2019.20190605.51237/texk -DUNIX -DKPATHSEA -DSHIFTLOWCHARS -Wdate-time -D_FORTIFY_SOURCE=2 -Wimplicit -Wreturn-type -g -O2 -fdebug-prefix-map=/usr/local/src/texlive-bin-2019.20190605.51237=. -fstack-protector-strong -Wformat -Werror=format-security -c -o fontdef.o fontdef.c
+ gcc -DHAVE_CONFIG_H -I. -I../../../texk/dvipsk  -I/usr/local/src/texlive-bin-2019.20190605.51237/Work/texk -I/usr/local/src/texlive-bin-2019.20190605.51237/texk -DUNIX -DKPATHSEA -DSHIFTLOWCHARS -Wdate-time -D_FORTIFY_SOURCE=2 -Wimplicit -Wreturn-type -g -O2 -fdebug-prefix-map=/usr/local/src/texlive-bin-2019.20190605.51237=. -fstack-protector-strong -Wformat -Werror=format-security -c -o header.o header.c
+ gcc -DHAVE_CONFIG_H -I. -I../../../texk/dvipsk  -I/usr/local/src/texlive-bin-2019.20190605.51237/Work/texk -I/usr/local/src/texlive-bin-2019.20190605.51237/texk -DUNIX -DKPATHSEA -DSHIFTLOWCHARS -Wdate-time -D_FORTIFY_SOURCE=2 -Wimplicit -Wreturn-type -g -O2 -fdebug-prefix-map=/usr/local/src/texlive-bin-2019.20190605.51237=. -fstack-protector-strong -Wformat -Werror=format-security -c -o hps.o hps.c
+@@ -88,10 +90,10 @@
+ gcc -DHAVE_CONFIG_H -I. -I../../../texk/dvipsk  -I/usr/local/src/texlive-bin-2019.20190605.51237/Work/texk -I/usr/local/src/texlive-bin-2019.20190605.51237/texk -DUNIX -DKPATHSEA -DSHIFTLOWCHARS -Wdate-time -D_FORTIFY_SOURCE=2 -Wimplicit -Wreturn-type -g -O2 -fdebug-prefix-map=/usr/local/src/texlive-bin-2019.20190605.51237=. -fstack-protector-strong -Wformat -Werror=format-security -c -o prescan.o prescan.c
+ gcc -DHAVE_CONFIG_H -I. -I../../../texk/dvipsk  -I/usr/local/src/texlive-bin-2019.20190605.51237/Work/texk -I/usr/local/src/texlive-bin-2019.20190605.51237/texk -DUNIX -DKPATHSEA -DSHIFTLOWCHARS -Wdate-time -D_FORTIFY_SOURCE=2 -Wimplicit -Wreturn-type -g -O2 -fdebug-prefix-map=/usr/local/src/texlive-bin-2019.20190605.51237=. -fstack-protector-strong -Wformat -Werror=format-security -c -o repack.o repack.c
+ gcc -DHAVE_CONFIG_H -I. -I../../../texk/dvipsk  -I/usr/local/src/texlive-bin-2019.20190605.51237/Work/texk -I/usr/local/src/texlive-bin-2019.20190605.51237/texk -DUNIX -DKPATHSEA -DSHIFTLOWCHARS -Wdate-time -D_FORTIFY_SOURCE=2 -Wimplicit -Wreturn-type -g -O2 -fdebug-prefix-map=/usr/local/src/texlive-bin-2019.20190605.51237=. -fstack-protector-strong -Wformat -Werror=format-security -c -o resident.o resident.c
+-resident.c: In function ‘getdefaults’:
+-resident.c:670:10: warning: ignoring return value of ‘system’, declared with attribute warn_unused_result [-Wunused-result]
+-  670 |          system(was_inline+1);
+-      |          ^~~~~~~~~~~~~~~~~~~~
++resident.c: In function 'getdefaults':
++resident.c:670:10: warning: ignoring return value of 'system', declared with attribute warn_unused_result [-Wunused-result]
++          system(was_inline+1);
++          ^~~~~~~~~~~~~~~~~~~~
+ gcc -DHAVE_CONFIG_H -I. -I../../../texk/dvipsk  -I/usr/local/src/texlive-bin-2019.20190605.51237/Work/texk -I/usr/local/src/texlive-bin-2019.20190605.51237/texk -DUNIX -DKPATHSEA -DSHIFTLOWCHARS -Wdate-time -D_FORTIFY_SOURCE=2 -Wimplicit -Wreturn-type -g -O2 -fdebug-prefix-map=/usr/local/src/texlive-bin-2019.20190605.51237=. -fstack-protector-strong -Wformat -Werror=format-security -c -o scalewidth.o scalewidth.c
+ gcc -DHAVE_CONFIG_H -I. -I../../../texk/dvipsk  -I/usr/local/src/texlive-bin-2019.20190605.51237/Work/texk -I/usr/local/src/texlive-bin-2019.20190605.51237/texk -DUNIX -DKPATHSEA -DSHIFTLOWCHARS -Wdate-time -D_FORTIFY_SOURCE=2 -Wimplicit -Wreturn-type -g -O2 -fdebug-prefix-map=/usr/local/src/texlive-bin-2019.20190605.51237=. -fstack-protector-strong -Wformat -Werror=format-security -c -o scanpage.o scanpage.c
+ gcc -DHAVE_CONFIG_H -I. -I../../../texk/dvipsk  -I/usr/local/src/texlive-bin-2019.20190605.51237/Work/texk -I/usr/local/src/texlive-bin-2019.20190605.51237/texk -DUNIX -DKPATHSEA -DSHIFTLOWCHARS -Wdate-time -D_FORTIFY_SOURCE=2 -Wimplicit -Wreturn-type -g -O2 -fdebug-prefix-map=/usr/local/src/texlive-bin-2019.20190605.51237=. -fstack-protector-strong -Wformat -Werror=format-security -c -o search.o search.c
+@@ -101,5 +103,5 @@
+ gcc -DHAVE_CONFIG_H -I. -I../../../texk/dvipsk  -I/usr/local/src/texlive-bin-2019.20190605.51237/Work/texk -I/usr/local/src/texlive-bin-2019.20190605.51237/texk -DUNIX -DKPATHSEA -DSHIFTLOWCHARS -Wdate-time -D_FORTIFY_SOURCE=2 -Wimplicit -Wreturn-type -g -O2 -fdebug-prefix-map=/usr/local/src/texlive-bin-2019.20190605.51237=. -fstack-protector-strong -Wformat -Werror=format-security -c -o unpack.o unpack.c
+ gcc -DHAVE_CONFIG_H -I. -I../../../texk/dvipsk  -I/usr/local/src/texlive-bin-2019.20190605.51237/Work/texk -I/usr/local/src/texlive-bin-2019.20190605.51237/texk -DUNIX -DKPATHSEA -DSHIFTLOWCHARS -Wdate-time -D_FORTIFY_SOURCE=2 -Wimplicit -Wreturn-type -g -O2 -fdebug-prefix-map=/usr/local/src/texlive-bin-2019.20190605.51237=. -fstack-protector-strong -Wformat -Werror=format-security -c -o virtualfont.o virtualfont.c
+ gcc -DHAVE_CONFIG_H -I. -I../../../texk/dvipsk  -I/usr/local/src/texlive-bin-2019.20190605.51237/Work/texk -I/usr/local/src/texlive-bin-2019.20190605.51237/texk -DUNIX -DKPATHSEA -DSHIFTLOWCHARS -Wdate-time -D_FORTIFY_SOURCE=2 -Wimplicit -Wreturn-type -g -O2 -fdebug-prefix-map=/usr/local/src/texlive-bin-2019.20190605.51237=. -fstack-protector-strong -Wformat -Werror=format-security -c -o writet1.o writet1.c
+-/bin/bash ./libtool  --tag=CC   --mode=link gcc -Wimplicit -Wreturn-type -g -O2 -fdebug-prefix-map=/usr/local/src/texlive-bin-2019.20190605.51237=. -fstack-protector-strong -Wformat -Werror=format-security  -Wl,-z,relro -o /usr/local/bin/dvips bbox.o color.o dopage.o dosection.o dospecial.o download.o dpicheck.o drawPS.o dviinput.o dvips.o emspecial.o finclude.o fontdef.o header.o hps.o loadfont.o output.o papersiz.o pprescan.o prescan.o repack.o resident.o scalewidth.o scanpage.o search.o skippage.o t1part.o tfmload.o unpack.o virtualfont.o writet1.o ./libkpathsea.la -lm 
+-libtool: link: gcc -Wimplicit -Wreturn-type -g -O2 -fdebug-prefix-map=/usr/local/src/texlive-bin-2019.20190605.51237=. -fstack-protector-strong -Wformat -Werror=format-security -Wl,-z -Wl,relro -o /usr/local/bin/.libs/dvips bbox.o color.o dopage.o dosection.o dospecial.o download.o dpicheck.o drawPS.o dviinput.o dvips.o emspecial.o finclude.o fontdef.o header.o hps.o loadfont.o output.o papersiz.o pprescan.o prescan.o repack.o resident.o scalewidth.o scanpage.o search.o skippage.o t1part.o tfmload.o unpack.o virtualfont.o writet1.o  ./.libs/libkpathsea.so -lm
++/bin/bash ./libtool  --tag=CC   --mode=link gcc -Wimplicit -Wreturn-type -g -O2 -fdebug-prefix-map=/usr/local/src/texlive-bin-2019.20190605.51237=. -fstack-protector-strong -Wformat -Werror=format-security  -Wl,-z,relro -o dvips bbox.o color.o dopage.o dosection.o dospecial.o download.o dpicheck.o drawPS.o dviinput.o dvips.o emspecial.o finclude.o fontdef.o header.o hps.o loadfont.o output.o papersiz.o pprescan.o prescan.o repack.o resident.o scalewidth.o scanpage.o search.o skippage.o t1part.o tfmload.o unpack.o virtualfont.o writet1.o ./libkpathsea.la -lm 
++libtool: link: gcc -Wimplicit -Wreturn-type -g -O2 -fdebug-prefix-map=/usr/local/src/texlive-bin-2019.20190605.51237=. -fstack-protector-strong -Wformat -Werror=format-security -Wl,-z -Wl,relro -o .libs/dvips bbox.o color.o dopage.o dosection.o dospecial.o download.o dpicheck.o drawPS.o dviinput.o dvips.o emspecial.o finclude.o fontdef.o header.o hps.o loadfont.o output.o papersiz.o pprescan.o prescan.o repack.o resident.o scalewidth.o scanpage.o search.o skippage.o t1part.o tfmload.o unpack.o virtualfont.o writet1.o  ./.libs/libkpathsea.so -lm
