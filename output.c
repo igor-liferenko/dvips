@@ -193,7 +193,7 @@ copyfile_general(const char *s, struct header_list *cur_header)
         }
         *utf8fileptr = '\0';
 
-      sprintf(errbuf, "Could not find figure file %s; continuing.", utf8fileptr);
+      sprintf(errbuf, "Could not find figure file %s; continuing.", utf8file);
       if (secure == 2) {
          strcat(errbuf, "\nNote that an absolute path or a relative path with .. are denied in -R2 mode.");
       }
