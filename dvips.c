@@ -2,6 +2,7 @@
  *   This is the main routine.
  */
 #include "dvips.h" /* The copyright notice there is included too! */
+#include <locale.h>
 #ifdef KPATHSEA
 #include <kpathsea/c-pathch.h>
 #include <kpathsea/proginit.h>
@@ -587,6 +588,7 @@ int
 main(int argc, char **argv)
 #endif
 {
+   setlocale(LC_CTYPE, "C.UTF-8");
    int i, lastext = -1;
 #ifdef MVSXA
    int firstext = -1;
