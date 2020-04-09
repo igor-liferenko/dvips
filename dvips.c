@@ -2,7 +2,6 @@
  *   This is the main routine.
  */
 #include "dvips.h" /* The copyright notice there is included too! */
-#include <locale.h>
 #ifdef KPATHSEA
 #include <kpathsea/c-pathch.h>
 #include <kpathsea/proginit.h>
@@ -578,15 +577,9 @@ queryargs(void)
    qargv[qargc] = (char *)NULL;
 }
 
-/*
- *   Finally, our main routine.
- */
-#ifdef VMS
-main(void)
-#else
-int
-main(int argc, char **argv)
-#endif
+#include <locale.h>
+
+int main(int argc, char **argv)
 {
    setlocale(LC_CTYPE, "C.UTF-8");
    int i, lastext = -1;
