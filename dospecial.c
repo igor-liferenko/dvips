@@ -379,16 +379,30 @@ predospecial(integer numbytes, Boolean scanning)
       p = nextstring = mymalloc(1000 + 2 * numbytes);
       maxstring = nextstring + 2 * numbytes + 700;
    }
-   for (i=numbytes; i>0; i--)
+   for (i=numbytes; i>0; i--) {
 #ifdef VMCMS /* IBM: VM/CMS */
       *p++ = ascii2ebcdic[(char)dvibyte()];
 #else
 #ifdef MVSXA /* IBM: MVS/XA */
       *p++ = ascii2ebcdic[(char)dvibyte()];
 #else
-      *p++ = (char)dvibyte();
+      char x = (char)dvibyte();
+      wchar_t xchr[256];
+      #include "/home/user/ctex/mapping"
+      if ((unsigned char) x <= 127) {
+        if (p <= maxstring)
+          *p++ = x;
+      }
+      else {
+        char mb[MB_CUR_MAX];
+        int len = wctomb(mb, xchr[(unsigned char) x]);
+        for (int i = 0; i < len; i++)
+          if (p <= maxstring)
+            *p++ = mb[i];
+      }
 #endif /* IBM: VM/CMS */
 #endif
+   }
    if (pprescan)
       return;
    while (p[-1] <= ' ' && p > nextstring)
@@ -613,16 +627,30 @@ if (HPS_FLAG && NEED_NEW_BOX) {
 #endif
    if (nextstring + numbytes > maxstring)
       error("! out of string space in dospecial");
-   for (i=numbytes; i>0; i--)
+   for (i=numbytes; i>0; i--) {
 #ifdef VMCMS /* IBM: VM/CMS */
       *p++ = ascii2ebcdic[(char)dvibyte()];
 #else
 #ifdef MVSXA /* IBM: MVS/XA */
       *p++ = ascii2ebcdic[(char)dvibyte()];
 #else
-      *p++ = (char)dvibyte();
+      char x = (char)dvibyte();
+      wchar_t xchr[256];
+      #include "/home/user/ctex/mapping"
+      if ((unsigned char) x <= 127) {
+        if (p <= maxstring)
+          *p++ = x;
+      }
+      else {
+        char mb[MB_CUR_MAX];
+        int len = wctomb(mb, xchr[(unsigned char) x]);
+        for (int i = 0; i < len; i++)
+          if (p <= maxstring)
+            *p++ = mb[i];
+      }
 #endif  /* IBM: VM/CMS */
 #endif
+   }
    while (p[-1] <= ' ' && p > nextstring)
       p--; /* trim trailing blanks */
    if (p==nextstring) return; /* all blank is no-op */
