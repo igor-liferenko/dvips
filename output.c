@@ -176,24 +176,7 @@ copyfile_general(const char *s, struct header_list *cur_header)
       }
 #endif /* VMCMS */
 #else /* VMCMS || MVSXA */
-        char utf8file[10000];
-        char *utf8fileptr = utf8file;
-        wchar_t xchr[256];
-        #include "/home/user/ctex/mapping"
-        for (const char *fileptr=s; *fileptr!='\0'; fileptr++) {
-             if ((unsigned char) *fileptr <= 127) {
-               *utf8fileptr++ = *fileptr;
-             }
-             else {
-               char mb[MB_CUR_MAX];
-               int len = wctomb(mb, xchr[(unsigned char) *fileptr]);
-               for (int i = 0; i < len; i++)
-                 *utf8fileptr++ = mb[i];
-             }
-        }
-        *utf8fileptr = '\0';
-
-      sprintf(errbuf, "Could not find figure file %s; continuing.", utf8file);
+      sprintf(errbuf, "Could not find figure file %.500s; continuing.", s);
       if (secure == 2) {
          strcat(errbuf, "\nNote that an absolute path or a relative path with .. are denied in -R2 mode.");
       }

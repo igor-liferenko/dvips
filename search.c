@@ -156,29 +156,9 @@ search(kpse_file_format_type format, const char *file, const char *mode)
 #ifndef SECURE
   }
 #endif
-  char utf8file[10000];
-  if (format == figpath) {
-        char *utf8fileptr = utf8file;
-	wchar_t xchr[256];
-	#include "/home/user/ctex/mapping"
-        for (const char *fileptr=file; *fileptr!='\0'; fileptr++) {
-             if ((unsigned char) *fileptr <= 127) {
-               *utf8fileptr++ = *fileptr;
-             }
-             else {
-               char mb[MB_CUR_MAX];
-               int len = wctomb(mb, xchr[(unsigned char) *fileptr]);
-               for (int i = 0; i < len; i++)
-                 *utf8fileptr++ = mb[i];
-             }
-        }
-        *utf8fileptr = '\0';
-  }
-  else
-	strcpy(utf8file, file);
   /* Most file looked for through here must exist -- the exception is
      VF's. Bitmap fonts go through pksearch. */
-  found_name = kpse_find_file (utf8file, format,
+  found_name = kpse_find_file (file, format,
                                format != vfpath && format != ofmpath);
   if (found_name) {
     unsigned len = strlen (found_name);
