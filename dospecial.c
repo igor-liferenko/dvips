@@ -595,41 +595,27 @@ static char psfile_scanfontcomments[PSFILESIZ];
 extern wchar_t xchr[256];
 const char *utf8(const char *ValStr)
 {
-  int limit = 0;
   char *psfileptr = psfile_scanfontcomments;
   for (const char *ValStrPtr=ValStr; *ValStrPtr!='\0'; ValStrPtr++)
     if ((unsigned char) *ValStrPtr <= 127) {
-      if (psfileptr + 1 - psfile_scanfontcomments < PSFILESIZ) {
-        if (psfileptr + 1 - psfile_scanfontcomments > 20 && !limit) limit = psfileptr - psfile_scanfontcomments;
+      if (psfileptr + 1 - psfile_scanfontcomments < PSFILESIZ)
         *psfileptr++ = *ValStrPtr;
-      }
-      else {
-        *psfileptr = '\0';
-        goto error;
-      }
+      else
+        return "/dev/null";
     }
     else {
       char mb[MB_CUR_MAX];
       int len = wctomb(mb, xchr[(unsigned char) *ValStrPtr]);
       if (psfileptr + len - psfile_scanfontcomments < PSFILESIZ) {
-        if (psfileptr + len - psfile_scanfontcomments > 20 && !limit) limit = psfileptr - psfile_scanfontcomments;
         for (int i = 0; i < len; i++)
           *psfileptr++ = mb[i];
       }
-      else {
-        *psfileptr = '\0';
-        goto error;
-      }
+      else
+        return "/dev/null";
     }
   *psfileptr = '\0';
 
   return psfile_scanfontcomments;
-
-error:
-  sprintf(errbuf, "! PS filename (%.*s...) in \\special longer than %d characters",
-           limit, psfile_scanfontcomments, PSFILESIZ);
-  error(errbuf);
-  return ValStr;
 }
 
 static char psfile[PSFILESIZ];
@@ -1018,37 +1004,37 @@ default:
                     "psfile", ValStr);
            specerror(errbuf);
          } else {
-  int limit = 0;
-  char *psfileptr = psfile;
-  for (const char *ValStrPtr=ValStr; *ValStrPtr!='\0'; ValStrPtr++)
-    if ((unsigned char) *ValStrPtr <= 127) {
-      if (psfileptr + 1 - psfile < PSFILESIZ) {
-        if (psfileptr + 1 - psfile > 20 && !limit) limit = psfileptr - psfile;
-        *psfileptr++ = *ValStrPtr;
-      }
-      else {
-        *psfileptr = '\0';
-        sprintf(errbuf, "! PS filename (%.*s...) in \\special longer than %d characters",
-           limit, psfile, PSFILESIZ);
-        error(errbuf);
-      }
-    }
-    else {
-      char mb[MB_CUR_MAX];
-      int len = wctomb(mb, xchr[(unsigned char) *ValStrPtr]);
-      if (psfileptr + len - psfile < PSFILESIZ) {
-        if (psfileptr + len - psfile > 20 && !limit) limit = psfileptr - psfile;
-        for (int i = 0; i < len; i++)
-          *psfileptr++ = mb[i];
-      }
-      else {
-        *psfileptr = '\0';
-        sprintf(errbuf, "! PS filename (%.*s...) in \\special longer than %d characters",
-           limit, psfile, PSFILESIZ);
-        error(errbuf);
-      }
-    }
-  *psfileptr = '\0';
+           int limit = 0;
+           char *psfileptr = psfile;
+           for (const char *ValStrPtr=ValStr; *ValStrPtr!='\0'; ValStrPtr++)
+             if ((unsigned char) *ValStrPtr <= 127) {
+               if (psfileptr + 1 - psfile < PSFILESIZ) {
+                 if (psfileptr + 1 - psfile > 20 && !limit) limit = psfileptr - psfile;
+                 *psfileptr++ = *ValStrPtr;
+               }
+               else {
+                 *psfileptr = '\0';
+                 sprintf(errbuf, "! PS filename (%.*s...) in \\special longer than %d characters",
+                         limit, psfile, PSFILESIZ);
+                 error(errbuf);
+               }
+             }
+             else {
+               char mb[MB_CUR_MAX];
+               int len = wctomb(mb, xchr[(unsigned char) *ValStrPtr]);
+               if (psfileptr + len - psfile < PSFILESIZ) {
+                 if (psfileptr + len - psfile > 20 && !limit) limit = psfileptr - psfile;
+                 for (int i = 0; i < len; i++)
+                   *psfileptr++ = mb[i];
+               }
+               else {
+                 *psfileptr = '\0';
+                 sprintf(errbuf, "! PS filename (%.*s...) in \\special longer than %d characters",
+                         limit, psfile, PSFILESIZ);
+                 error(errbuf);
+               }
+             }
+           *psfileptr = '\0';
          }
          task = tasks[j];
          break;
