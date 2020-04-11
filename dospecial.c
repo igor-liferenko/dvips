@@ -358,7 +358,7 @@ found: *tno = i;
 static char psfile_utf8[PSFILESIZ_UTF8];
 
 extern wchar_t xchr[256];
-char *to_utf8(char *ValStr)
+char *to_utf8(const char *ValStr)
 {
   int utf8len = 0;
   for (const char *ValStrPtr=ValStr; *ValStrPtr!='\0'; ValStrPtr++)
