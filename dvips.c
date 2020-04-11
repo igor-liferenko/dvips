@@ -579,9 +579,11 @@ queryargs(void)
 
 #include <locale.h>
 
+wchar_t xchr[256];
 int main(int argc, char **argv)
 {
    setlocale(LC_CTYPE, "C.UTF-8");
+   #include "/home/user/ctex/mapping"
    int i, lastext = -1;
 #ifdef MVSXA
    int firstext = -1;

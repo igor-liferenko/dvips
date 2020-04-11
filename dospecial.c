@@ -354,6 +354,40 @@ found: *tno = i;
    return (s);
 }
 
+#define PSFILESIZ_UTF8 1000
+static char psfile_utf8[PSFILESIZ_UTF8];
+
+extern wchar_t xchr[256];
+char *to_utf8(char *ValStr)
+{
+  int utf8len = 0;
+  for (const char *ValStrPtr=ValStr; *ValStrPtr!='\0'; ValStrPtr++)
+    if ((unsigned char) *ValStrPtr <= 127)
+      utf8len += 1;
+    else {
+      char mb[MB_CUR_MAX];
+      utf8len += wctomb(mb, xchr[(unsigned char) *ValStrPtr]);
+    }
+  if (utf8len >= PSFILESIZ_UTF8) {
+    sprintf(errbuf, "! PS filename in \\special longer than %d characters", PSFILESIZ_UTF8);
+    error(errbuf);
+  }
+
+  char *psfileptr = psfile_utf8;
+  for (const char *ValStrPtr=ValStr; *ValStrPtr!='\0'; ValStrPtr++)
+    if ((unsigned char) *ValStrPtr <= 127)
+      *psfileptr++ = *ValStrPtr;
+    else {
+      char mb[MB_CUR_MAX];
+      int len = wctomb(mb, xchr[(unsigned char) *ValStrPtr]);
+      for (int i = 0; i < len; i++)
+        *psfileptr++ = mb[i];
+    }
+  *psfileptr = '\0';
+
+  return psfile_utf8;
+}
+
 /*
  *   Now our routines.  We get the number of bytes specified and place them
  *   into the string buffer, and then parse it. Numerous conventions are
@@ -386,20 +420,7 @@ predospecial(integer numbytes, Boolean scanning)
 #ifdef MVSXA /* IBM: MVS/XA */
       *p++ = ascii2ebcdic[(char)dvibyte()];
 #else
-      char x = (char)dvibyte();
-      wchar_t xchr[256];
-      #include "/home/user/ctex/mapping"
-      if ((unsigned char) x <= 127) {
-        if (p <= maxstring)
-          *p++ = x;
-      }
-      else {
-        char mb[MB_CUR_MAX];
-        int len = wctomb(mb, xchr[(unsigned char) x]);
-        for (int i = 0; i < len; i++)
-          if (p <= maxstring)
-            *p++ = mb[i];
-      }
+      *p++ = (char)dvibyte();
 #endif /* IBM: VM/CMS */
 #endif
    }
@@ -585,7 +606,7 @@ default:
    usesspecial = 1;  /* now the special prolog will be sent */
    if (scanning && *p != '"' && (p=GetKeyVal(p, &j)) != NULL && j==0
        && *ValStr != '`') /* Don't bother to scan compressed files.  */
-      scanfontcomments(ValStr);
+      scanfontcomments(to_utf8(ValStr));
 }
 
 /* Return 1 if S is readable along figpath, 0 if not. */
@@ -634,20 +655,7 @@ if (HPS_FLAG && NEED_NEW_BOX) {
 #ifdef MVSXA /* IBM: MVS/XA */
       *p++ = ascii2ebcdic[(char)dvibyte()];
 #else
-      char x = (char)dvibyte();
-      wchar_t xchr[256];
-      #include "/home/user/ctex/mapping"
-      if ((unsigned char) x <= 127) {
-        if (p <= maxstring)
-          *p++ = x;
-      }
-      else {
-        char mb[MB_CUR_MAX];
-        int len = wctomb(mb, xchr[(unsigned char) x]);
-        for (int i = 0; i < len; i++)
-          if (p <= maxstring)
-            *p++ = mb[i];
-      }
+      *p++ = (char)dvibyte();
 #endif  /* IBM: VM/CMS */
 #endif
    }
@@ -1007,7 +1015,7 @@ default:
                        ValStr, PSFILESIZ);
 	       error(errbuf);
            }
-           strcpy(psfile, ValStr);
+           strcpy(psfile, to_utf8(ValStr));
          }
          task = tasks[j];
          break;
