@@ -580,7 +580,16 @@ queryargs(void)
 #include <locale.h>
 
 wchar_t xchr[256];
-int main(int argc, char **argv)
+
+/*
+ *   Finally, our main routine.
+ */
+#ifdef VMS
+main(void)
+#else
+int
+main(int argc, char **argv)
+#endif
 {
    setlocale(LC_CTYPE, "C.UTF-8");
    #include "/home/user/ctex/mapping"
