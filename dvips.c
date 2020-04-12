@@ -592,6 +592,7 @@ main(int argc, char **argv)
 #endif
 {
    setlocale(LC_CTYPE, "C.UTF-8");
+   for (int i = 128; i < 256; i++) xchr[i] = L' ';
    #include "/home/user/ctex/mapping"
    int i, lastext = -1;
 #ifdef MVSXA
