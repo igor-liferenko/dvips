@@ -573,7 +573,7 @@ default:
    usesspecial = 1;  /* now the special prolog will be sent */
    if (scanning && *p != '"' && (p=GetKeyVal(p, &j)) != NULL && j==0
        && *ValStr != '`') /* Don't bother to scan compressed files.  */
-      scanfontcomments(utf8(ValStr));
+      scanfontcomments(utf8(ValStr)); // this is used for metapost labels
 }
 
 /* Return 1 if S is readable along figpath, 0 if not. */
