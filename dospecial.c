@@ -363,7 +363,6 @@ found: *tno = i;
  *   new string buffer if necessary.
  */
 
-const char *utf8(const char *);
 void
 predospecial(integer numbytes, Boolean scanning)
 {
@@ -380,7 +379,7 @@ predospecial(integer numbytes, Boolean scanning)
       p = nextstring = mymalloc(1000 + 2 * numbytes);
       maxstring = nextstring + 2 * numbytes + 700;
    }
-   for (i=numbytes; i>0; i--) {
+   for (i=numbytes; i>0; i--)
 #ifdef VMCMS /* IBM: VM/CMS */
       *p++ = ascii2ebcdic[(char)dvibyte()];
 #else
@@ -390,7 +389,6 @@ predospecial(integer numbytes, Boolean scanning)
       *p++ = (char)dvibyte();
 #endif /* IBM: VM/CMS */
 #endif
-   }
    if (pprescan)
       return;
    while (p[-1] <= ' ' && p > nextstring)
@@ -573,7 +571,7 @@ default:
    usesspecial = 1;  /* now the special prolog will be sent */
    if (scanning && *p != '"' && (p=GetKeyVal(p, &j)) != NULL && j==0
        && *ValStr != '`') /* Don't bother to scan compressed files.  */
-      scanfontcomments(utf8(ValStr)); // this is used for metapost labels
+      scanfontcomments(ValStr);
 }
 
 /* Return 1 if S is readable along figpath, 0 if not. */
@@ -590,34 +588,6 @@ maccess(char *s)
 const char *tasks[] = { 0, "iff2ps", "tek2ps" };
 
 #define PSFILESIZ 511
-static char psfile_scanfontcomments[PSFILESIZ];
-
-extern wchar_t xchr[256];
-const char *utf8(const char *ValStr)
-{
-  char *psfileptr = psfile_scanfontcomments;
-  for (const char *ValStrPtr=ValStr; *ValStrPtr!='\0'; ValStrPtr++)
-    if ((unsigned char) *ValStrPtr <= 127) {
-      if (psfileptr + 1 - psfile_scanfontcomments < PSFILESIZ)
-        *psfileptr++ = *ValStrPtr;
-      else
-        return "/dev/null";
-    }
-    else {
-      char mb[MB_CUR_MAX];
-      int len = wctomb(mb, xchr[(unsigned char) *ValStrPtr]);
-      if (psfileptr + len - psfile_scanfontcomments < PSFILESIZ) {
-        for (int i = 0; i < len; i++)
-          *psfileptr++ = mb[i];
-      }
-      else
-        return "/dev/null";
-    }
-  *psfileptr = '\0';
-
-  return psfile_scanfontcomments;
-}
-
 static char psfile[PSFILESIZ];
 
 void
@@ -643,7 +613,7 @@ if (HPS_FLAG && NEED_NEW_BOX) {
 #endif
    if (nextstring + numbytes > maxstring)
       error("! out of string space in dospecial");
-   for (i=numbytes; i>0; i--) {
+   for (i=numbytes; i>0; i--)
 #ifdef VMCMS /* IBM: VM/CMS */
       *p++ = ascii2ebcdic[(char)dvibyte()];
 #else
@@ -653,7 +623,6 @@ if (HPS_FLAG && NEED_NEW_BOX) {
       *p++ = (char)dvibyte();
 #endif  /* IBM: VM/CMS */
 #endif
-   }
    while (p[-1] <= ' ' && p > nextstring)
       p--; /* trim trailing blanks */
    if (p==nextstring) return; /* all blank is no-op */
@@ -1004,37 +973,13 @@ default:
                     "psfile", ValStr);
            specerror(errbuf);
          } else {
-           int limit = 0;
-           char *psfileptr = psfile;
-           for (const char *ValStrPtr=ValStr; *ValStrPtr!='\0'; ValStrPtr++)
-             if ((unsigned char) *ValStrPtr <= 127) {
-               if (psfileptr + 1 - psfile < PSFILESIZ) {
-                 if (psfileptr + 1 - psfile > 20 && !limit) limit = psfileptr - psfile;
-                 *psfileptr++ = *ValStrPtr;
-               }
-               else {
-                 *psfileptr = '\0';
-                 sprintf(errbuf, "! PS filename (%.*s...) in \\special longer than %d characters",
-                         limit, psfile, PSFILESIZ);
-                 error(errbuf);
-               }
-             }
-             else {
-               char mb[MB_CUR_MAX];
-               int len = wctomb(mb, xchr[(unsigned char) *ValStrPtr]);
-               if (psfileptr + len - psfile < PSFILESIZ) {
-                 if (psfileptr + len - psfile > 20 && !limit) limit = psfileptr - psfile;
-                 for (int i = 0; i < len; i++)
-                   *psfileptr++ = mb[i];
-               }
-               else {
-                 *psfileptr = '\0';
-                 sprintf(errbuf, "! PS filename (%.*s...) in \\special longer than %d characters",
-                         limit, psfile, PSFILESIZ);
-                 error(errbuf);
-               }
-             }
-           *psfileptr = '\0';
+           if (strlen(ValStr) >= PSFILESIZ) {
+               sprintf(errbuf, 
+           "! PS filename (%.20s...) in \\special longer than %d characters",
+                       ValStr, PSFILESIZ);
+	       error(errbuf);
+           }
+           strcpy(psfile, ValStr);
          }
          task = tasks[j];
          break;
