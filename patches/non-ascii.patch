@@ -1,0 +1,19 @@
+commit 99f1a2be9a2993114a53f1727400a953eef2d1d8
+Author: Igor Liferenko <igor.liferenko@gmail.com>
+Date:   Wed Apr 8 16:58:57 2020 +0700
+
+    allow non-ascii psfile name (fixed in official repo)
+
+diff --git a/dospecial.c b/dospecial.c
+index 2d46e39..3967bff 100644
+--- a/dospecial.c
++++ b/dospecial.c
+@@ -286,7 +286,7 @@
+      /* str : starting point for scan */
+      /* tno : table entry number of keyword, or -1 if keyword not found */
+ {
+-   register char *s;
++   unsigned char *s;
+    register int i;
+    register char t;
+ 
