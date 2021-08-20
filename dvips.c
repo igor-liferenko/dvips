@@ -583,6 +583,7 @@ queryargs(void)
 #ifdef VMS
 main(void)
 #else
+char *myptr;
 int
 main(int argc, char **argv)
 #endif
@@ -879,7 +880,7 @@ case 'O' :
                   p = argv[++i];
                handlepapersize(p, &hoff, &voff);
                break;
-case 'T' :
+case 'p' :
                if (*p == 0 && argv[i+1])
                   p = argv[++i];
                handlepapersize(p, &hpapersize, &vpapersize);
@@ -890,48 +891,14 @@ case 'T' :
                }
                lastpsizwins = 0;
                break;
-case 'p' :
-#if defined(MSDOS) || defined(OS2) || defined(ATARIST)
-               /* check for emTeX job file (-pj=filename) */
-               if (*p == 'j') {
-                 p++;
-                 if (*p == '=' || *p == ':')
-                   p++;
-                 mfjobname = newstring(p);
-                 break;
-               }
-               /* must be page number instead */
-#endif
-               if (*p == 'p') {  /* a -pp specifier for a page list? */
-                  p++;
-                  if (*p == 0 && argv[i+1])
-                     p = argv[++i];
-                  if (ParsePages(p))
-                     error("! Bad page list specifier (-pp).");
-                  pagelist = 1;
-                  break;
-               }
+case 's' :
                if (*p == 0 && argv[i+1])
                   p = argv[++i];
-               if (*p == '=') {
-                  abspage = 1;
-                  p++;
-               }
-#ifdef SHORTINT
-               switch(sscanf(p, "%ld.%ld", &firstpage, &firstseq)) {
-#else        /* ~SHORTINT */
-               switch(sscanf(p, "%d.%d", &firstpage, &firstseq)) {
-#endif        /* ~SHORTINT */
-case 1:           firstseq = 0;
-case 2:           break;
-default:
-#ifdef KPATHSEA
-                  error(concat3 ("! Bad first page option (-p ", p, ")."));
-#else
-                  error("! Bad first page option (-p).");
-#endif
-               }
-               notfirst = 1;
+	       if (*p == '-' && *(p+1) == 0) break;
+               if (ParsePages(p))
+                  error("! Bad page list specifier (-s).");
+               pagelist = 1;
+	       abspage = 1;
                break;
 case 'l':
                if (*p == 0 && argv[i+1])
@@ -984,14 +951,18 @@ case 'v':
                 printf ("%s %s\n", banner, banner2);
                 exit (0);
                 break;
-case 'x' : case 'y' :
-               if (*p == 0 && argv[i+1])
-                  p = argv[++i];
-               if (sscanf(p, "%lg", &mag)==0 || mag < 1 ||
-                          mag > 1000000)
-                  error("! Bad magnification parameter (-x or -y).");
-               overridemag = (c == 'x' ? 1 : -1);
-               break;
+case 'x' :
+		if (*p == 0 && argv[i+1])
+		   p = argv[++i];
+                p[strlen(p)-2]=0;
+		hoff = strtol(p,&myptr,0);
+		break;
+case 'y' :
+		if (*p == 0 && argv[i+1])
+		   p = argv[++i];
+		p[strlen(p)-2]=0;
+		voff = strtol(p,&myptr,0);
+		break;
 case 'C' :
                if (*p == 0 && argv[i+1])
                   p = argv[++i];
@@ -1077,9 +1048,6 @@ case 'P' :
                      papsizes = opapsiz;
                   }
 	       }
-               break;
-case 's':
-               safetyenclose = (*p != '0');
                break;
 case 'V':
                downloadpspk = (*p != '0');

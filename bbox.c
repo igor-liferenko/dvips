@@ -479,8 +479,8 @@ findbb(integer bop)
    real off = 72.0 / conv;
    real margin = 1.0 / conv;
    real vsize = 792.0 / conv;
-   real hadj = -72.0 * hoff / 4736286.72;
-   real vadj = 72.0 * voff / 4736286.72;
+   real hadj = -72.0 * hoff / 4736286.72 + 72.0;
+   real vadj = 72.0 * voff / 4736286.72 - 72.0;
 
    fseek(dvifile, bop, 0);
    bbdopage();
