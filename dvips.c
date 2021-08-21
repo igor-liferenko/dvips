@@ -895,6 +895,7 @@ case 's' :
                if (*p == 0 && argv[i+1])
                   p = argv[++i];
 	       if (*p == '-' && *(p+1) == 0) break;
+	       error("! Option `-s' is not completed.");
                if (ParsePages(p))
                   error("! Bad page list specifier (-s).");
                pagelist = 1;
