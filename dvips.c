@@ -894,8 +894,8 @@ case 's' :
                if (*p == 0 && argv[i+1])
                   p = argv[++i];
 	       if (*p == '-' && *(p+1) == 0) break;
-	       exit(1); // remove this line when you do TODO in patches/args.patch
-               ParsePages(p);
+               if (ParsePages(p))
+                  error("! Bad page list specifier.");
                pagelist = 1;
 	       abspage = 1;
                break;
