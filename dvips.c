@@ -72,7 +72,6 @@ extern char *strtok(); /* some systems don't have this in strings.h */
 /* PS fonts fully downloaded as headers */
 char *downloadedpsnames[DOWNLOADEDPSSIZE];
 
-int npages = 0;
 int unused_top_of_psnames;   /* unused top number of downloadedpsnames[#] */
 fontdesctype *fonthead;      /* list of all fonts mentioned so far */
 fontdesctype *curfnt;        /* the currently selected font */
@@ -878,7 +877,7 @@ case 'o' :
 case 'O' :
                if (*p == 0 && argv[i+1])
                   p = argv[++i];
-	       npages = strtol(p,NULL,0);
+               handlepapersize(p, &hoff, &voff);
                break;
 case 'p' :
                if (*p == 0 && argv[i+1])
