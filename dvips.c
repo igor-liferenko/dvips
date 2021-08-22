@@ -956,13 +956,13 @@ case 'x' :
 		if (*p == 0 && argv[i+1])
 		   p = argv[++i];
                 p[strlen(p)-2]=0;
-		hoff = strtol(p,&myptr,0);
+		hoff = strtol(p,&myptr,0) - 4736287;
 		break;
 case 'y' :
 		if (*p == 0 && argv[i+1])
 		   p = argv[++i];
 		p[strlen(p)-2]=0;
-		voff = strtol(p,&myptr,0);
+		voff = strtol(p,&myptr,0) - 4736287;
 		break;
 case 'C' :
                if (*p == 0 && argv[i+1])
