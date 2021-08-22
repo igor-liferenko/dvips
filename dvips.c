@@ -894,7 +894,7 @@ case 's' :
                if (*p == 0 && argv[i+1])
                   p = argv[++i];
 	       if (*p == '-' && *(p+1) == 0) break;
-	       error("! TODO: see bin/dvips");
+	       error("! do TODO in patches/args.patch");
                ParsePages(p);
                pagelist = 1;
 	       abspage = 1;
