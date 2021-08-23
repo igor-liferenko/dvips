@@ -1,2 +1,0 @@
-TODO: make ParsePages() work by respecting the specified order of pages (not only use allowed pages),
-then do git diff ea016a52.. and put it here
