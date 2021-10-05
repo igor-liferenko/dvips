@@ -277,6 +277,7 @@ extern integer hoff, voff;
 extern integer maxsecsize;
 extern integer firstboploc;
 extern Boolean sepfiles;
+extern int mysepfiles;
 extern int numcopies;
 extern const char *oname;
 extern char *iname;

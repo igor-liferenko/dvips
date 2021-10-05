@@ -107,6 +107,7 @@ integer hoff, voff;          /* horizontal and vertical offsets */
 integer maxsecsize = 0;       /* the maximum size of a section */
 integer firstboploc;         /* where the first bop is */
 Boolean sepfiles;            /* each section in its own file? */
+int mysepfiles;
 int numcopies;               /* number of copies of each page to print */
 const char *oname;           /* output file name */
 char *iname;                 /* dvi file name */
@@ -815,6 +816,11 @@ case 'i':
                  maxsecsize = 1; /* default section size to one page/file */
                }
                break;
+case 'I':
+               mysepfiles = 1;
+	       sepfiles = 1;
+               maxsecsize = 1; /* default section size to one page/file */
+               break;
 case 'j':
                partialdownload = (*p != '0');
                break;
@@ -1402,6 +1408,7 @@ default:
        exit(8); /* exit with errorlevel 8 for emTeX dvidrv */
    }
 #endif
+   if (!mysepfiles)
    if (includesfonts)
       add_header(IFONTHEADER);
    if (usesPSfonts)

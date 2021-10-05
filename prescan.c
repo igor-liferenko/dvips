@@ -90,6 +90,7 @@ prescanpages(void)
 #endif  /* DEBUG */
       pagenum = signedquad();
       pageseq++;
+      if (mysepfiles) mysepfiles=pageseq;
       mpagenum = abspage ? pageseq : pagenum;
       if (mpagenum == firstpage && ntfirst)
          firstmatch++;
@@ -154,6 +155,7 @@ prescanpages(void)
          thissectionmem = swmem - fontmem - OVERCOST;
          mpagenum = abspage ? pageseq : pagenum;
          pageseq++;
+         if (mysepfiles) mysepfiles=pageseq;
          if (mpagenum == lastpage && notlast)
             lastmatch++;
          if (notlast && mpagenum == lastpage && lastmatch == lastseq)

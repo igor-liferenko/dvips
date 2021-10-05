@@ -209,6 +209,7 @@ pprescanpages(void)
          error("! Bad DVI file: expected bop");
       pagenum = signedquad();
       pageseq++;
+      if (mysepfiles) mysepfiles=pageseq;
       mpagenum = abspage ? pageseq : pagenum;
       if (mpagenum == firstpage && ntfirst)
          firstmatch++;
@@ -253,6 +254,7 @@ pprescanpages(void)
       pagenum = signedquad();
       skipover(40);
       pageseq++;
+      if (mysepfiles) mysepfiles=pageseq;
    }
    fseek(dvifile, 0L, 0);
    pprescan = 0;

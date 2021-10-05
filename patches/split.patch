@@ -1,0 +1,133 @@
+diff --git a/dvips.c b/dvips.c
+index 5c7f6d3..6cd0627 100644
+--- a/dvips.c
++++ b/dvips.c
+@@ -107,6 +107,7 @@
+ integer maxsecsize = 0;       /* the maximum size of a section */
+ integer firstboploc;         /* where the first bop is */
+ Boolean sepfiles;            /* each section in its own file? */
++int mysepfiles;
+ int numcopies;               /* number of copies of each page to print */
+ const char *oname;           /* output file name */
+ char *iname;                 /* dvi file name */
+@@ -815,6 +816,11 @@
+                  maxsecsize = 1; /* default section size to one page/file */
+                }
+                break;
++case 'I':
++               mysepfiles = 1;
++	       sepfiles = 1;
++               maxsecsize = 1; /* default section size to one page/file */
++               break;
+ case 'j':
+                partialdownload = (*p != '0');
+                break;
+@@ -1402,6 +1408,7 @@
+        exit(8); /* exit with errorlevel 8 for emTeX dvidrv */
+    }
+ #endif
++   if (!mysepfiles)
+    if (includesfonts)
+       add_header(IFONTHEADER);
+    if (usesPSfonts)
+diff --git a/output.c b/output.c
+index 1114ee7..4a6c223 100644
+--- a/output.c
++++ b/output.c
+@@ -1423,7 +1423,7 @@
+       if (jobtime == INVALID_EPOCH_VALUE) {
+          jobtime = time(0);
+       }
+-      fprintf(bitfile, "%%%%CreationDate: %s", asctime(gmtime(&jobtime)));
++      if (!mysepfiles) fprintf(bitfile, "%%%%CreationDate: %s", asctime(gmtime(&jobtime)));
+ #endif
+       if (! isepsf) {
+ /*
+@@ -1458,6 +1458,7 @@
+  *   limitation, if possible.
+  */
+       fprintf(bitfile, "%%DVIPSWebPage: %s\n", banner2);
++      if (!mysepfiles) {
+       fprintf(bitfile, "%%DVIPSCommandLine:");
+       len = 18;
+       for (i=0; i<gargc; i++) {
+@@ -1475,7 +1476,8 @@
+          }
+          fprintf(bitfile, (*p ? " \"%s\"" : " %s"), gargv[i]);
+       }
+-      fprintf(bitfile, "\n%%DVIPSParameters: dpi=%d", actualdpi);
++      fprintf(bitfile, "\n"); }
++      fprintf(bitfile, "%%DVIPSParameters: dpi=%d", actualdpi);
+       if (actualdpi != vactualdpi)
+          fprintf(bitfile, "x%d", vactualdpi);
+       if (compressed)
+@@ -1620,7 +1622,7 @@
+ #else
+          fprintf(bitfile, "%%DVIPSSectionPage: %d\n", pagenum);
+       else if (! isepsf)
+-         fprintf(bitfile, "%%%%Page: %d %d\n", pagenum, thispage);
++         fprintf(bitfile, "%%%%Page: %d %d\n", pagenum, mysepfiles ? mysepfiles : thispage);
+ #endif
+    }
+    linepos = 0;
+@@ -1634,7 +1636,7 @@
+ #endif
+    if (landscape) cmdout("@landscape");
+    numout((integer)pagenum);
+-   numout((integer)thispage-1);
++   numout(mysepfiles ? mysepfiles-1 : (integer)thispage-1);
+    cmdout("bop");
+    d = 0;
+ }
+diff --git a/pprescan.c b/pprescan.c
+index d1a024a..d2e35a8 100644
+--- a/pprescan.c
++++ b/pprescan.c
+@@ -209,6 +209,7 @@
+          error("! Bad DVI file: expected bop");
+       pagenum = signedquad();
+       pageseq++;
++      if (mysepfiles) mysepfiles=pageseq;
+       mpagenum = abspage ? pageseq : pagenum;
+       if (mpagenum == firstpage && ntfirst)
+          firstmatch++;
+@@ -253,6 +254,7 @@
+       pagenum = signedquad();
+       skipover(40);
+       pageseq++;
++      if (mysepfiles) mysepfiles=pageseq;
+    }
+    fseek(dvifile, 0L, 0);
+    pprescan = 0;
+diff --git a/prescan.c b/prescan.c
+index 3dd2b20..f27f133 100644
+--- a/prescan.c
++++ b/prescan.c
+@@ -90,6 +90,7 @@
+ #endif  /* DEBUG */
+       pagenum = signedquad();
+       pageseq++;
++      if (mysepfiles) mysepfiles=pageseq;
+       mpagenum = abspage ? pageseq : pagenum;
+       if (mpagenum == firstpage && ntfirst)
+          firstmatch++;
+@@ -154,6 +155,7 @@
+          thissectionmem = swmem - fontmem - OVERCOST;
+          mpagenum = abspage ? pageseq : pagenum;
+          pageseq++;
++         if (mysepfiles) mysepfiles=pageseq;
+          if (mpagenum == lastpage && notlast)
+             lastmatch++;
+          if (notlast && mpagenum == lastpage && lastmatch == lastseq)
+diff --git a/protos.h b/protos.h
+index 853dead..7f7727f 100644
+--- a/protos.h
++++ b/protos.h
+@@ -277,6 +277,7 @@
+ extern integer maxsecsize;
+ extern integer firstboploc;
+ extern Boolean sepfiles;
++extern int mysepfiles;
+ extern int numcopies;
+ extern const char *oname;
+ extern char *iname;
