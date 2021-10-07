@@ -18,6 +18,7 @@ int pagecounter;
 void
 dosection(sectiontype *s, int c)
 {
+   int mypageseq, i;
    charusetype *cu;
    integer prevptr;
    int np;
@@ -79,10 +80,15 @@ dosection(sectiontype *s, int c)
       while (np-- != 0) {
          if (reverse)
             fseek(dvifile, (long)prevptr, 0);
-         pagenum.pos = ftell(dvifile);
-         pagenum.count0 = signedquad();
-	 if ((evenpages && (pagenum.count0 & 1)) || (oddpages && (pagenum.count0 & 1)==0) ||
-	  (pagelist && !InPageList(pagenum.count0))) {
+         if (mysepfiles&&(pagelist||notfirst||notlast)) {
+           long mypos = ftell(dvifile);
+           for (i = 1; i < 10000; i++)
+             if (page_locations[i] == mypos) { mypageseq = i; break; }
+           assert(i != 10000);
+         }
+         pagenum = signedquad();
+	 if ((evenpages && (pagenum & 1)) || (oddpages && (pagenum & 1)==0) ||
+	  (pagelist && !InPageList(pagenum))) {
 	    if (reverse) {
                skipover(36);
                prevptr = signedquad()+1;
@@ -99,7 +105,7 @@ dosection(sectiontype *s, int c)
  *   small, so we do it quick.
  */
          if (! quiet) {
-            int t = pagenum.count0, i = 0;
+            int t = pagenum, i = 0;
             if (t < 0) {
                t = -t;
                i++;
@@ -118,7 +124,7 @@ dosection(sectiontype *s, int c)
 #ifdef SHORTINT
             fprintf(stderr, "[%ld", pagenum);
 #else  /* ~SHORTINT */
-            fprintf(stderr, "[%d", pagenum.count0);
+            fprintf(stderr, "[%d", pagenum);
 #endif /* ~SHORTINT */
             fflush(stderr);
          }
@@ -138,7 +144,7 @@ dosection(sectiontype *s, int c)
                fflush(stderr);
                prettycolumn++;
             }
-            dopage();
+            dopage(mypageseq);
          }
          if (! quiet) {
             fprintf(stderr, "] ");

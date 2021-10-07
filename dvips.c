@@ -131,8 +131,8 @@ char *paperfmt;              /* command-line paper format */
 int landscape = 0;           /* landscape mode */
 integer fontmem;             /* memory remaining in printer */
 integer pagecount;           /* page counter for the sections */
-struct mypagenum pagenum;             /* the page number we currently look at */
-long mypages[10000];
+integer pagenum;             /* the page number we currently look at */
+long page_locations[10000];
 long bytesleft;              /* number of bytes left in raster */
 quarterword *raster;         /* area for raster manipulations */
 integer hh, vv;              /* horizontal and vertical pixel positions */

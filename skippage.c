@@ -24,7 +24,7 @@ skippage(void)
 #ifdef SHORTINT
    fprintf(stderr,"Skipping page %ld\n", pagenum);
 #else   /* ~SHORTINT */
-   fprintf(stderr,"Skipping page %d\n", pagenum.count0);
+   fprintf(stderr,"Skipping page %d\n", pagenum);
 #endif  /* ~SHORTINT */
 #endif  /* DEBUG */
 /* skipover(40); skip rest of bop command? how did this get in here? */

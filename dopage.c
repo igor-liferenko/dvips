@@ -33,7 +33,7 @@ integer H_BREAK; /* An empirical parameter for guessing line breaks; needs
 #endif 
 
 void
-dopage(void)
+dopage(int mypageseq)
 {
    register shalfword cmd;
    register integer p;
@@ -59,7 +59,7 @@ dopage(void)
 #ifdef EMTEX
    emclear();
 #endif
-   pageinit();
+   pageinit(mypageseq);
    
    bopcolor(1);
    thinspace =  (integer)(0.025*DPI/conv); /* 0.025 inches */

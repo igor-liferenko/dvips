@@ -123,7 +123,7 @@ scanpage(void)
 #ifdef SHORTINT
    fprintf(stderr,"Scanning page %ld\n", pagenum);
 #else   /* ~SHORTINT */
-   fprintf(stderr,"Scanning page %d\n", pagenum.count0);
+   fprintf(stderr,"Scanning page %d\n", pagenum);
 #endif  /* ~SHORTINT */
 #endif  /* DEBUG */
    curfnt = NULL;
@@ -272,7 +272,7 @@ endofpage:
 #ifdef SHORTINT
       fprintf(stderr, "Page %ld may be too complex to print\n", pagenum);
 #else   /* ~SHORTINT */
-      fprintf(stderr, "Page %d may be too complex to print\n", pagenum.count0);
+      fprintf(stderr, "Page %d may be too complex to print\n", pagenum);
 #endif  /* ~SHORTINT */
 /*
  *   This case should be rare indeed.  Even with only 200K of virtual memory,

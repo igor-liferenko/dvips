@@ -185,7 +185,7 @@ resetcolorstack(char * p, int outtops)
 #else   /* ~SHORTINT */
      fprintf(stderr, "You've mistakenly made a global color change ");
      fprintf(stderr, "to %s within nested colors\n", p);
-     fprintf(stderr, "on page %d. Will try to recover.\n", pagenum.count0);
+     fprintf(stderr, "on page %d. Will try to recover.\n", pagenum);
 #endif  /* ~SHORTINT */
    }
    csp = cstack;
