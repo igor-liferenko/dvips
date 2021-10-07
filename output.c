@@ -1604,6 +1604,12 @@ psflush(void) {
    rulex = ruley = rhh = rvv = -314159265;
    lastfont = -1;
 }
+int get_pageseq_from_pos(long pos)
+{
+  for (int i = 1; i < 10000; i++)
+    if (mypages[i] == pos) return i;
+  return 0;
+}
 /*
  *   pageinit initializes the output variables.
  */
@@ -1620,9 +1626,9 @@ pageinit(void)
       else if (! isepsf)
          fprintf(bitfile, "%%%%Page: %ld %d\n", pagenum, thispage);
 #else
-         fprintf(bitfile, "%%DVIPSSectionPage: %d\n", pagenum);
+         fprintf(bitfile, "%%DVIPSSectionPage: %d\n", pagenum.count0);
       else if (! isepsf)
-         fprintf(bitfile, "%%%%Page: %d %d\n", pagenum, mysepfiles ? mysepfiles : thispage);
+         fprintf(bitfile, "%%%%Page: %d %d\n", pagenum.count0, (mysepfiles&&(pagelist||notfirst||notlast)) ? get_pageseq_from_pos(pagenum.pos) : thispage);
 #endif
    }
    linepos = 0;
@@ -1635,8 +1641,8 @@ pageinit(void)
    }
 #endif
    if (landscape) cmdout("@landscape");
-   numout((integer)pagenum);
-   numout(mysepfiles ? mysepfiles-1 : (integer)thispage-1);
+   numout((integer)pagenum.count0);
+   numout((mysepfiles&&(pagelist||notfirst||notlast)) ? get_pageseq_from_pos(pagenum.pos)-1 : (integer)thispage-1);
    cmdout("bop");
    d = 0;
 }

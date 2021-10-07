@@ -49,7 +49,7 @@ pscanpage(void)
 #ifdef SHORTINT
    fprintf(stderr,"PPrescanning page %ld\n", pagenum);
 #else   /* ~SHORTINT */
-   fprintf(stderr,"PPrescanning page %d\n", pagenum);
+   fprintf(stderr,"PPrescanning page %d\n", pagenum.count0);
 #endif  /* ~SHORTINT */
 #endif  /* DEBUG */
    curfnt = NULL;
@@ -207,10 +207,9 @@ pprescanpages(void)
          error("! End of document before first specified page");
       if (cmd!=139)
          error("! Bad DVI file: expected bop");
-      pagenum = signedquad();
+      pagenum.count0 = signedquad();
       pageseq++;
-      if (mysepfiles) mysepfiles=pageseq;
-      mpagenum = abspage ? pageseq : pagenum;
+      mpagenum = abspage ? pageseq : pagenum.count0;
       if (mpagenum == firstpage && ntfirst)
          firstmatch++;
       if (mpagenum == lastpage && notlast)
@@ -218,8 +217,8 @@ pprescanpages(void)
       if (ntfirst && mpagenum == firstpage && firstmatch == firstseq)
          ntfirst = 0;
       if (ntfirst ||
-          ((evenpages && (pagenum & 1)) || (oddpages && (pagenum & 1)==0) ||
-           (pagelist && !InPageList(pagenum)))) {
+          ((evenpages && (pagenum.count0 & 1)) || (oddpages && (pagenum.count0 & 1)==0) ||
+           (pagelist && !InPageList(pagenum.count0)))) {
          skipover(40);
          skippage();
       } else {
@@ -235,14 +234,14 @@ pprescanpages(void)
  */
    skipover(40);
    while (lmaxpages > 0) {
-      if (!(evenpages && (pagenum & 1)) &&
-         !(oddpages && (pagenum & 1)==0) &&
-         !(pagelist && !InPageList(pagenum))) {
+      if (!(evenpages && (pagenum.count0 & 1)) &&
+         !(oddpages && (pagenum.count0 & 1)==0) &&
+         !(pagelist && !InPageList(pagenum.count0))) {
          pscanpage();
          lmaxpages--;
       } else
          skippage();
-      mpagenum = abspage ? pageseq : pagenum;
+      mpagenum = abspage ? pageseq : pagenum.count0;
       if (mpagenum == lastpage && notlast)
          lastmatch++;
       if (notlast && mpagenum == lastpage && lastmatch == lastseq)
@@ -251,10 +250,9 @@ pprescanpages(void)
       if (cmd==248) break;
       if (cmd!=139)
          error("! Bad DVI file: expected bop");
-      pagenum = signedquad();
+      pagenum.count0 = signedquad();
       skipover(40);
       pageseq++;
-      if (mysepfiles) mysepfiles=pageseq;
    }
    fseek(dvifile, 0L, 0);
    pprescan = 0;

@@ -80,6 +80,7 @@ prescanpages(void)
       if (cmd!=139)
          error("! Bad DVI file: expected bop");
       thispageloc = ftell(dvifile); /* the location FOLLOWING the bop */
+      mypages[pageseq+1] = thispageloc;
 #ifdef DEBUG
       if (dd(D_PAGE))
 #ifdef SHORTINT
@@ -88,10 +89,9 @@ prescanpages(void)
       fprintf(stderr,"bop at %d\n", (int)thispageloc);
 #endif  /* ~SHORTINT */
 #endif  /* DEBUG */
-      pagenum = signedquad();
+      pagenum.count0 = signedquad();
       pageseq++;
-      if (mysepfiles) mysepfiles=pageseq;
-      mpagenum = abspage ? pageseq : pagenum;
+      mpagenum = abspage ? pageseq : pagenum.count0;
       if (mpagenum == firstpage && ntfirst)
          firstmatch++;
       if (mpagenum == lastpage && notlast)
@@ -99,8 +99,8 @@ prescanpages(void)
       if (ntfirst && mpagenum == firstpage && firstmatch == firstseq)
          ntfirst = 0;
       if (ntfirst ||
-          ((evenpages && (pagenum & 1)) || (oddpages && (pagenum & 1)==0) ||
-           (pagelist && !InPageList(pagenum)))) {
+          ((evenpages && (pagenum.count0 & 1)) || (oddpages && (pagenum.count0 & 1)==0) ||
+           (pagelist && !InPageList(pagenum.count0)))) {
          skipover(40);
          skippage();
       } else {
@@ -129,7 +129,7 @@ prescanpages(void)
  */
       pagecount = 0;
       fseek(dvifile, (long)thispageloc, 0);
-      pagenum = signedquad();
+      pagenum.count0 = signedquad();
       skipover(40);
       thissecloc = thispageloc;
 /*
@@ -142,9 +142,9 @@ prescanpages(void)
  */
       ret = 0;
       while (maxpages>0) {
-         if (!(evenpages && (pagenum & 1)) &&
-             !(oddpages && (pagenum & 1)==0) &&
-             !(pagelist && !InPageList(pagenum))) {
+         if (!(evenpages && (pagenum.count0 & 1)) &&
+             !(oddpages && (pagenum.count0 & 1)==0) &&
+             !(pagelist && !InPageList(pagenum.count0))) {
             ret = scanpage();
             if (ret == 0)
                break;
@@ -153,9 +153,8 @@ prescanpages(void)
          } else
             skippage();
          thissectionmem = swmem - fontmem - OVERCOST;
-         mpagenum = abspage ? pageseq : pagenum;
+         mpagenum = abspage ? pageseq : pagenum.count0;
          pageseq++;
-         if (mysepfiles) mysepfiles=pageseq;
          if (mpagenum == lastpage && notlast)
             lastmatch++;
          if (notlast && mpagenum == lastpage && lastmatch == lastseq)
@@ -176,6 +175,7 @@ prescanpages(void)
          if (cmd!=139)
             error("! Bad DVI file: expected bop");
          thispageloc = ftell(dvifile);
+         mypages[pageseq] = thispageloc;
 #ifdef DEBUG
          if (dd(D_PAGE))
 #ifdef SHORTINT
@@ -184,7 +184,7 @@ prescanpages(void)
          fprintf(stderr,"bop at %d\n", (int)thispageloc);
 #endif  /* ~SHORTINT */
 #endif  /* DEBUG */
-         pagenum = signedquad();
+         pagenum.count0 = signedquad();
          skipover(40);
          if (ret==2 || (maxsecsize && pagecount >= maxsecsize))
             break;

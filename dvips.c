@@ -106,8 +106,7 @@ integer hpapersize, vpapersize; /* horizontal and vertical paper size */
 integer hoff, voff;          /* horizontal and vertical offsets */
 integer maxsecsize = 0;       /* the maximum size of a section */
 integer firstboploc;         /* where the first bop is */
-Boolean sepfiles;            /* each section in its own file? */
-int mysepfiles;
+Boolean sepfiles, mysepfiles;            /* each section in its own file? */
 int numcopies;               /* number of copies of each page to print */
 const char *oname;           /* output file name */
 char *iname;                 /* dvi file name */
@@ -132,7 +131,8 @@ char *paperfmt;              /* command-line paper format */
 int landscape = 0;           /* landscape mode */
 integer fontmem;             /* memory remaining in printer */
 integer pagecount;           /* page counter for the sections */
-integer pagenum;             /* the page number we currently look at */
+struct mypagenum pagenum;             /* the page number we currently look at */
+long mypages[10000];
 long bytesleft;              /* number of bytes left in raster */
 quarterword *raster;         /* area for raster manipulations */
 integer hh, vv;              /* horizontal and vertical pixel positions */
