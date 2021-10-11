@@ -80,7 +80,6 @@ prescanpages(void)
       if (cmd!=139)
          error("! Bad DVI file: expected bop");
       thispageloc = ftell(dvifile); /* the location FOLLOWING the bop */
-      page_locations[pageseq+1] = thispageloc;
 #ifdef DEBUG
       if (dd(D_PAGE))
 #ifdef SHORTINT
@@ -175,7 +174,6 @@ prescanpages(void)
          if (cmd!=139)
             error("! Bad DVI file: expected bop");
          thispageloc = ftell(dvifile);
-         page_locations[pageseq] = thispageloc;
 #ifdef DEBUG
          if (dd(D_PAGE))
 #ifdef SHORTINT

@@ -18,7 +18,6 @@ int pagecounter;
 void
 dosection(sectiontype *s, int c)
 {
-   int mypageseq;
    charusetype *cu;
    integer prevptr;
    int np;
@@ -80,13 +79,6 @@ dosection(sectiontype *s, int c)
       while (np-- != 0) {
          if (reverse)
             fseek(dvifile, (long)prevptr, 0);
-         if (mysepfiles&&(pagelist||notfirst||notlast)) {
-           long mypos = ftell(dvifile);
-           int i;
-           for (i = 1; i < 10000; i++)
-             if (page_locations[i] == mypos) { mypageseq = i; break; }
-           assert(i != 10000);
-         }
          pagenum = signedquad();
 	 if ((evenpages && (pagenum & 1)) || (oddpages && (pagenum & 1)==0) ||
 	  (pagelist && !InPageList(pagenum))) {
@@ -145,7 +137,7 @@ dosection(sectiontype *s, int c)
                fflush(stderr);
                prettycolumn++;
             }
-            dopage(mypageseq);
+            dopage();
          }
          if (! quiet) {
             fprintf(stderr, "] ");

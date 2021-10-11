@@ -23,7 +23,7 @@ extern void pushcolor(char *p, Boolean outtops);
 extern void popcolor(Boolean outtops);
 
 /* prototypes for functions from dopage.c */
-extern void dopage(int);
+extern void dopage(void);
 
 /* prototypes for functions from dosection.c */
 extern void dosection(sectiontype *s, int c);
@@ -151,7 +151,7 @@ extern void initprinter(sectiontype *sect);
 extern void setup(void);
 extern void cleanprinter(void);
 extern void psflush(void);
-extern void pageinit(int);
+extern void pageinit(void);
 extern void pageend(void);
 extern void drawrule(int rw, int rh);
 extern void cmddir(void);
@@ -276,7 +276,7 @@ extern integer hpapersize, vpapersize;
 extern integer hoff, voff;
 extern integer maxsecsize;
 extern integer firstboploc;
-extern Boolean sepfiles, mysepfiles;
+extern Boolean sepfiles;
 extern int numcopies;
 extern const char *oname;
 extern char *iname;
@@ -298,7 +298,6 @@ extern int landscape;
 extern integer fontmem;
 extern integer pagecount;
 extern integer pagenum;
-extern long page_locations[];
 extern long bytesleft;
 extern quarterword *raster;
 extern integer hh, vv;

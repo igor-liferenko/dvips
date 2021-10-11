@@ -1423,7 +1423,7 @@ initprinter(sectiontype *sect)
       if (jobtime == INVALID_EPOCH_VALUE) {
          jobtime = time(0);
       }
-      if (!mysepfiles) fprintf(bitfile, "%%%%CreationDate: %s", asctime(gmtime(&jobtime)));
+      fprintf(bitfile, "%%%%CreationDate: %s", asctime(gmtime(&jobtime)));
 #endif
       if (! isepsf) {
 /*
@@ -1458,7 +1458,6 @@ initprinter(sectiontype *sect)
  *   limitation, if possible.
  */
       fprintf(bitfile, "%%DVIPSWebPage: %s\n", banner2);
-      if (!mysepfiles) {
       fprintf(bitfile, "%%DVIPSCommandLine:");
       len = 18;
       for (i=0; i<gargc; i++) {
@@ -1476,8 +1475,7 @@ initprinter(sectiontype *sect)
          }
          fprintf(bitfile, (*p ? " \"%s\"" : " %s"), gargv[i]);
       }
-      fprintf(bitfile, "\n"); }
-      fprintf(bitfile, "%%DVIPSParameters: dpi=%d", actualdpi);
+      fprintf(bitfile, "\n%%DVIPSParameters: dpi=%d", actualdpi);
       if (actualdpi != vactualdpi)
          fprintf(bitfile, "x%d", vactualdpi);
       if (compressed)
@@ -1608,7 +1606,7 @@ psflush(void) {
  *   pageinit initializes the output variables.
  */
 void
-pageinit(int mypageseq)
+pageinit(void)
 {
    psflush();
    newline();
@@ -1622,7 +1620,7 @@ pageinit(int mypageseq)
 #else
          fprintf(bitfile, "%%DVIPSSectionPage: %d\n", pagenum);
       else if (! isepsf)
-         fprintf(bitfile, "%%%%Page: %d %d\n", pagenum, (mysepfiles&&(pagelist||notfirst||notlast)) ? mypageseq : thispage);
+         fprintf(bitfile, "%%%%Page: %d %d\n", pagenum, thispage);
 #endif
    }
    linepos = 0;
@@ -1636,7 +1634,7 @@ pageinit(int mypageseq)
 #endif
    if (landscape) cmdout("@landscape");
    numout((integer)pagenum);
-   numout((mysepfiles&&(pagelist||notfirst||notlast)) ? mypageseq-1 : (integer)thispage-1);
+   numout((integer)thispage-1);
    cmdout("bop");
    d = 0;
 }
