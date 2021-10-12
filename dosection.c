@@ -121,8 +121,7 @@ dosection(sectiontype *s, int c)
 #endif /* ~SHORTINT */
             fflush(stderr);
          }
-         skipover(32);
-         pagenum = signedquad();
+         skipover(36);
          prevptr = signedquad()+1;
          for (k=0; k<pagecopies; k++) {
             if (k == 0) {

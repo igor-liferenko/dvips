@@ -1620,7 +1620,7 @@ pageinit(void)
 #else
          fprintf(bitfile, "%%DVIPSSectionPage: %d\n", pagenum);
       else if (! isepsf)
-         fprintf(bitfile, "%%%%Page: abs%d %d\n", pagenum, thispage);
+         fprintf(bitfile, "%%%%Page: %d %d\n", pagenum, thispage);
 #endif
    }
    linepos = 0;
