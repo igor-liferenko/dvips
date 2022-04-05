@@ -1,3 +1,5 @@
+dvips
+bitmapenc.o
 bbox.o
 color.o
 dopage.o
