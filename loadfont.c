@@ -29,6 +29,7 @@
 
 char errbuf[1500];
 int lastresortsizes[40];
+int bitmapfontseen = 0 ;
 /*
  *   Now we have some routines to get stuff from the PK file.
  *   Subroutine pkbyte returns the next byte.
@@ -137,7 +138,7 @@ pkopen(register fontdesctype *fd)
      pkfile = pksearch(this_name, READBIN, fd->dpi, &name_ret, &dpi_ret);
 
      if (!pkfile || !FILESTRCASEEQ (this_name, name_ret)) {
-       char *msg = concatn ("Font ", fd->area, n, " not found; ", NULL);
+       char *msg = concatn ("PK font ", fd->area, n, " not found; ", NULL);
        /* wasting some memory */
        if (!pkfile)
          msg = concat (msg, "characters will be left blank.");
@@ -333,22 +334,27 @@ loadfont(register fontdesctype *curfnt)
       }
    }
    curfnt->maxchars = 256; /* just in case we return before the end */
+   curfnt->llx = 0 ;
+   curfnt->lly = 0 ;
+   curfnt->urx = 0 ;
+   curfnt->ury = 0 ;
    if (!pkopen(curfnt)) {
       tfmload(curfnt);
       return;
    }
+   bitmapfontseen = 1 ;
    curfnt->dir = 0;
    if (!quiet) {
       if (strlen(realnameoffile) + prettycolumn > STDOUTSIZE) {
          fprintf(stderr, "\n");
          prettycolumn = 0;
       }
-      fprintf(stderr, "<%s>", realnameoffile);
+      fprintf_str(stderr, "<%s>", realnameoffile);
       prettycolumn += strlen(realnameoffile) + 2;
    }
 #ifdef DEBUG
    if (dd(D_FONTS))
-      fprintf(stderr,"Loading pk font %s at %.1fpt\n",
+      fprintf_str(stderr,"Loading pk font %s at %.1fpt\n",
          curfnt->name, (real)scaledsize/(alpha*0x100000));
 #endif /* DEBUG */
    if (pkbyte()!=247)
@@ -455,6 +461,21 @@ case 7:
             *tempr++ = cmd;
             for (length--; length>0; length--)
                *tempr++ = pkbyte();
+            {
+               // update the global font bounding box
+               // this is only used to set font sizes for type 3 bitmap
+               // encoding.
+               integer cwidth, cheight, xoff, yoff ;
+               unpack_bb(cd, &cwidth, &cheight, &xoff, &yoff) ;
+               if (-xoff < curfnt->llx)
+                  curfnt->llx = -xoff ;
+               if (cwidth - xoff > curfnt->urx)
+                  curfnt->urx = cwidth - xoff ;
+               if (yoff - cheight < curfnt->lly)
+                  curfnt->lly = yoff - cheight ;
+               if (yoff > curfnt->ury)
+                  curfnt->ury = yoff ;
+            }
          }
          cd->flags2 |= EXISTS;
       } else {

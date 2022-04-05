@@ -49,8 +49,23 @@ extern char *strtok(); /* some systems don't have this in strings.h */
 #endif
 
 #if defined(WIN32) && defined(KPATHSEA)
+FILE *generic_fsyscp_fopen(const char *filename, const char *mode)
+{
+  FILE *f;
+
+  f = fsyscp_fopen (filename, mode);
+
+  if (f == NULL && file_system_codepage != win32_codepage) {
+    int tmpcp = file_system_codepage;
+    file_system_codepage = win32_codepage;
+    f = fsyscp_fopen (filename, mode);
+    file_system_codepage = tmpcp;
+  }
+
+  return f;
+}
 #undef fopen
-#define fopen(file, fmode)  fsyscp_fopen(file, fmode)
+#define fopen(file, fmode)  generic_fsyscp_fopen(file, fmode)
 #endif
 
 #ifndef DEFRES
@@ -72,12 +87,14 @@ extern char *strtok(); /* some systems don't have this in strings.h */
 /* PS fonts fully downloaded as headers */
 char *downloadedpsnames[DOWNLOADEDPSSIZE];
 
+int found_problems = 0;      /* should we exit successfully? */
 int unused_top_of_psnames;   /* unused top number of downloadedpsnames[#] */
 fontdesctype *fonthead;      /* list of all fonts mentioned so far */
 fontdesctype *curfnt;        /* the currently selected font */
 sectiontype *sections;       /* sections to process document in */
 Boolean partialdownload = 1; /* turn on partial downloading */
 Boolean manualfeed;          /* manual feed? */
+Boolean landscaperotate = 0; /* when picking paper sizes allow rotated media */
 Boolean compressed;          /* compressed? */
 Boolean downloadpspk;        /* use PK for downloaded PS fonts? */
 Boolean safetyenclose;       /* enclose in save/restore for stupid spoolers? */
@@ -108,6 +125,7 @@ integer maxsecsize = 0;       /* the maximum size of a section */
 integer firstboploc;         /* where the first bop is */
 Boolean sepfiles;            /* each section in its own file? */
 int numcopies;               /* number of copies of each page to print */
+char *titlename="";          /* if given, used for %%Title */
 const char *oname;           /* output file name */
 char *iname;                 /* dvi file name */
 char *fulliname;             /* same, with current working directory */
@@ -271,6 +289,7 @@ static const char *helparr[] = {
 "Options:",
 "-a*  Conserve memory, not time       -A   Print only odd (TeX) pages",
 "-b # Page copies, for posters e.g.   -B   Print only even (TeX) pages",
+"-bitmapfontenc [on,off,strict] control bitmap font encoding",
 "-c # Uncollated copies               -C # Collated copies",
 "-d # Debugging                       -D # Resolution",
 "-e # Maxdrift value                  -E*  Try to create EPSF",
@@ -283,6 +302,7 @@ static const char *helparr[] = {
 "-j*  Download fonts partially",
 "-k*  Print crop marks                -K*  Pull comments from inclusions",
 "-l # Last page                       -L*  Last special papersize wins",
+"-landscaperotate*  Allow landscape to print rotated on portrait papersizes",
 "-m*  Manual feed                     -M*  Don't make fonts",
 "-mode s Metafont device name",
 "-n # Maximum number of pages         -N*  No structured comments",
@@ -299,6 +319,7 @@ static const char *helparr[] = {
 "-r*  Reverse order of pages          -R*  Run securely",
 "-s*  Enclose output in save/restore  -S # Max section size in pages",
 "-t s Paper format                    -T c Specify desired page size",
+"-title s Title in comment",
 "-u s PS mapfile                      -U*  Disable string param trick",
 "-v   Print version number and quit   -V*  Send downloadable PS fonts as PK",
 "-x # Override dvi magnification      -X # Horizontal resolution",
@@ -349,7 +370,7 @@ error_with_perror(const char *s, const char *fname)
    if (prettycolumn > 0)
         fprintf(stderr,"\n");
    prettycolumn = 0;
-   fprintf(stderr, "%s: %s", progname, s);
+   fprintf_str(stderr, "%s: %s", progname, s);
    if (fname) {
      putc (' ', stderr);
      perror (fname);
@@ -720,7 +741,7 @@ main(int argc, char **argv)
                 strcmp (argv[i] + 1, "-version") == 0) {
                puts (BANNER);
                puts (kpathsea_version_string);
-               puts ("Copyright 2019 Radical Eye Software.\n\
+               puts ("Copyright 2022 Radical Eye Software.\n\
 There is NO warranty.  You may redistribute this software\n\
 under the terms of the GNU General Public License\n\
 and the Dvips copyright.\n\
@@ -738,6 +759,20 @@ case 'a':
                dopprescan = (*p != '0');
                break;
 case 'b':
+               if (strcmp(p, "itmapfontenc") == 0) {
+                  p = argv[++i] ;
+                  if (strcmp(p, "off") == 0) {
+                     bitmapencopt(0) ; // disable bitmap font enc feature
+                  } else if (strcmp(p, "on") == 0) {
+                     bitmapencopt(1) ; // try to include bitmap font encs
+                  } else if (strcmp(p, "strict") == 0) {
+                     bitmapencopt(2) ; // issue warnings for missing encs
+                  } else {
+                     error(
+               "! -bitmapfontenc option only supports off, on, and strict") ;
+                  }
+                  break ;
+               }
                if (*p == 0 && argv[i+1])
                   p = argv[++i];
                if (sscanf(p, "%d", &pagecopies)==0)
@@ -934,27 +969,38 @@ default:
                notfirst = 1;
                break;
 case 'l':
-               if (*p == 0 && argv[i+1])
-                  p = argv[++i];
-               if (*p == '=') {
-                  abspage = 1;
-                  p++;
-               }
+               if (strncmp(p, "andscaperotate", 14) == 0) {
+                  p += 14 ;
+                  if (*p == 0 || *p == '1') {
+                     landscaperotate = 1 ;
+                  } else if (*p == '0') {
+                     landscaperotate = 0 ;
+                  } else {
+                     error("! -landscaperotate command ended with junk") ;
+                  }
+               } else {
+                  if (*p == 0 && argv[i+1])
+                     p = argv[++i];
+                  if (*p == '=') {
+                     abspage = 1;
+                     p++;
+                  }
 #ifdef SHORTINT
-               switch(sscanf(p, "%ld.%ld", &lastpage, &lastseq)) {
+                  switch(sscanf(p, "%ld.%ld", &lastpage, &lastseq)) {
 #else        /* ~SHORTINT */
-               switch(sscanf(p, "%d.%d", &lastpage, &lastseq)) {
+                  switch(sscanf(p, "%d.%d", &lastpage, &lastseq)) {
 #endif        /* ~SHORTINT */
-case 1:           lastseq = 0;
-case 2:           break;
+case 1:              lastseq = 0;
+case 2:              break;
 default:
 #ifdef KPATHSEA
-                  error(concat3 ("! Bad last page option (-l ", p, ")."));
+                     error(concat3 ("! Bad last page option (-l ", p, ")."));
 #else
-                  error("! Bad last page option (-l).");
+                     error("! Bad last page option (-l).");
 #endif
+                  }
+                  notlast = 1;
                }
-               notlast = 1;
                break;
 case 'A':
                oddpages = 1;
@@ -969,21 +1015,24 @@ case 'r' :
                reverse = (*p != '0');
                break;
 case 't' :
-               if (*p == 0 && argv[i+1])
-                  p = argv[++i];
-               if (strcmp(p, "landscape") == 0) {
-                  if (hpapersize || vpapersize)
-                     error(
-             "both landscape and papersize specified; ignoring landscape");
-                  else
-                     landscape = 1;
-               } else
-                  paperfmt = p;
+               if (STREQ (p, "itle") && argv[i+1]) {
+                  titlename = argv[++i];
+               } else {
+                  if (*p == 0 && argv[i+1])
+                     p = argv[++i];
+                  if (strcmp(p, "landscape") == 0) {
+                     if (hpapersize || vpapersize)
+                        error("both landscape and papersize specified; ignoring landscape");
+                     else
+                        landscape = 1;
+                  } else
+                     paperfmt = p;
+               }
                break;
 case 'v':
-                printf ("%s %s\n", banner, banner2);
-                exit (0);
-                break;
+               printf ("%s %s\n", banner, banner2);
+               exit (0);
+               break;
 case 'x' : case 'y' :
                if (*p == 0 && argv[i+1])
                   p = argv[++i];
@@ -1291,19 +1340,19 @@ default:
 #ifdef DEBUG
    if (dd(D_PATHS)) {
 #ifdef SHORTINT
-        fprintf(stderr,"input file %s output file %s swmem %ld\n",
+        fprintf_str(stderr,"input file %s output file %s swmem %ld\n",
 #else /* ~SHORTINT */
-           fprintf(stderr,"input file %s output file %s swmem %d\n",
+           fprintf_str(stderr,"input file %s output file %s swmem %d\n",
 #endif /* ~SHORTINT */
            iname, oname, swmem);
 #ifndef KPATHSEA
-   fprintf(stderr,"tfm path %s\npk path %s\n", tfmpath, pkpath);
-   fprintf(stderr,"fig path %s\nvf path %s\n", figpath, vfpath);
-   fprintf(stderr,"config path %s\nheader path %s\n",
+   fprintf_str(stderr,"tfm path %s\npk path %s\n", tfmpath, pkpath);
+   fprintf_str(stderr,"fig path %s\nvf path %s\n", figpath, vfpath);
+   fprintf_str(stderr,"config path %s\nheader path %s\n",
                   configpath, headerpath);
 #endif
 #ifdef FONTLIB
-   fprintf(stderr,"fli path %s\nfli names %s\n", flipath, fliname);
+   fprintf_str(stderr,"fli path %s\nfli names %s\n", flipath, fliname);
 #endif
    } /* dd(D_PATHS) */
 #endif /* DEBUG */
@@ -1452,7 +1501,7 @@ default:
                   fprintf(stderr, "\n");
                   prettycolumn = 0;
                }
-               fprintf(stderr, "(-> %s) ", oname);
+               fprintf_str(stderr, "(-> %s) ", oname);
                prettycolumn += strlen(oname) + 6;
             }
 #ifdef HPS
@@ -1500,7 +1549,7 @@ default:
 #endif
    }
 #endif
-   return 0;
+   return found_problems ? EXIT_FAILURE : EXIT_SUCCESS;
    /*NOTREACHED*/
 }
 #ifdef VMS
