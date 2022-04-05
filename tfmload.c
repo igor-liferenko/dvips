@@ -56,11 +56,7 @@ tfmopen(register fontdesctype *fd)
 #else
       sprintf(name, "%s.ofm", n);
 #endif
-     char *this_name = concat (fd->area, name);
-
-      tfmfile=search(d, this_name, READBIN);
-      free(this_name);
-      if (tfmfile != NULL)
+      if ((tfmfile=search(d, name, READBIN))!=NULL)
          return;
    }
 #ifdef KPATHSEA
@@ -75,10 +71,7 @@ tfmopen(register fontdesctype *fd)
 #else
    sprintf(name, "%s.tfm", n);
 #endif
-     char *this_name = concat (fd->area, name);
-     tfmfile=search(d, this_name, READBIN);
-     free(this_name);
-     if (tfmfile!=NULL)
+   if ((tfmfile=search(d, name, READBIN))!=NULL)
       return;
    sprintf(errbuf, "Can't open font metric file %.500s%.500s",
           fd->area, name);
