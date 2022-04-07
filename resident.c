@@ -17,6 +17,10 @@
 #include <kpathsea/pathsearch.h>
 #include <kpathsea/tex-file.h>
 #include <kpathsea/variable.h>
+#else
+#include <limits.h>
+#include <stdbool.h>
+#include <sys/stat.h>
 #endif
 /*
  *   This is the structure definition for resident fonts.  We use

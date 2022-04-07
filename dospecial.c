@@ -8,6 +8,7 @@
 #include <kpathsea/c-ctype.h>
 #include <kpathsea/tex-hush.h>
 #else /* ! KPATHSEA */
+#include <limits.h>
 #include <ctype.h>
 #include <stdlib.h>
 #ifndef WIN32

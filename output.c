@@ -9,6 +9,7 @@
 #include "dvips.h" /* The copyright notice in that file is included too! */
 #include <ctype.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #ifdef OS2
 #ifdef _MSC_VER
@@ -1407,7 +1408,7 @@ open_output(void) {
 
    /* Even PostScript output may include binary characters, so switch
       bitfile to binary mode.  */
-   if (O_BINARY && !isatty(fileno(bitfile)))
+   if (!isatty(fileno(bitfile)))
       SET_BINARY(fileno(bitfile));
 }
 void

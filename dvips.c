@@ -512,7 +512,7 @@ initialize(void)
    disablecomments = 0;
    maxdrift = -1;
    vmaxdrift = -1;
-   dontmakefont = !MAKE_TEX_PK_BY_DEFAULT;
+   dontmakefont = 0;
 }
 /*
  *   This routine copies a string into the string `pool', safely.
@@ -1395,7 +1395,7 @@ default:
       while (*nextstring++); /* advance nextstring past iname */
    } else if (filter) {
       dvifile = stdin;
-      if (O_BINARY && !isatty(fileno(stdin)))
+      if (!isatty(fileno(stdin)))
 	 SET_BINARY(fileno(stdin));
    } else {
 #ifdef KPATHSEA
