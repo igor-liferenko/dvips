@@ -6,84 +6,84 @@
  *   updating the current position as necessary.
  */
 #include "dvips.h" /* The copyright notice in that file is included too! */
-/*
- *   The external declarations:
- */
-#include "protos.h"
+void error() ;
+extern FILE *dvifile ;
+extern quarterword *curpos, *curlim ;
 
-static void
-abortpage(void)
+void
+abortpage()
 {
-   error("! unexpected eof on DVI file");
+   error("! unexpected eof on DVI file") ;
 }
 
 shalfword  /* the value returned is, however, between 0 and 255 */
-dvibyte(void)
+dvibyte()
 {
-  register shalfword i;
+  register shalfword i ;
   if (curpos) {
-     if (curpos>=curlim) return((shalfword)140);
-     return (*curpos++);
+     if (curpos>=curlim) return((shalfword)140) ;
+     return (*curpos++) ;
   }
   if ((i=getc(dvifile))==EOF)
-    abortpage();
-  return(i);
+    abortpage() ;
+  return(i) ;
 }
 
 halfword
-twobytes(void)
+twobytes()
 {
-  register halfword i;
-  i = dvibyte();
-  return(i*256+dvibyte()); }
+  register halfword i ;
+  i = dvibyte() ;
+  return(i*256+dvibyte()) ; }
 
 integer
-threebytes(void)
+threebytes()
 {
-  register integer i;
-  i = twobytes();
-  return(i*256+dvibyte()); }
+  register integer i ;
+  i = twobytes() ;
+  return(i*256+dvibyte()) ; }
 
 shalfword
-signedbyte(void)
+signedbyte()
 {
-  register shalfword i;
+  register shalfword i ;
   if (curpos) {
      if (curpos>=curlim)
-       error("! unexpected end of virtual packet");
-     i = *curpos++;
+       error("! unexpected end of virtual packet") ;
+     i = *curpos++ ;
   } else if ((i=getc(dvifile))==EOF)
-    abortpage();
-  if (i<128) return(i);
-  else return(i-256);
+    abortpage() ;
+  if (i<128) return(i) ;
+  else return(i-256) ;
 }
 
 shalfword
-signedpair(void)
+signedpair()
 {
-  register shalfword i;
-  i = signedbyte();
-  return(i*256+dvibyte());
+  register shalfword i ;
+  i = signedbyte() ;
+  return(i*256+dvibyte()) ;
 }
 
 integer
-signedtrio(void)
+signedtrio()
 {
-  register integer i;
-  i = signedpair();
-  return(i*256+dvibyte());
+  register integer i ;
+  i = signedpair() ;
+  return(i*256+dvibyte()) ;
 }
 
 integer
-signedquad(void)
+signedquad()
 {
-  register integer i;
-  i = signedpair();
-  return(i*65536+twobytes());
+  register integer i ;
+  i = signedpair() ;
+  return(i*65536+twobytes()) ;
 }
 
 void
-skipover(int i)
+skipover(i)
+        int i ;
 {
-  while (i-->0) dvibyte();
+  while (i-->0) (void)dvibyte() ;
 }

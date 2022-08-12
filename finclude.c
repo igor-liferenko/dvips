@@ -10,53 +10,83 @@
  * 11/1996 Aaron Sawdey
  */
 #include "dvips.h" /* The copyright notice in that file is included too! */
-#ifdef KPATHSEA
-#include <kpathsea/c-ctype.h>
-#else
 #include <ctype.h>
-#if !defined(SYSV) && !defined(WIN32)
-extern char *strtok(); /* some systems don't have this in strings.h */
-#endif
-#define ISXGIGIT isxdigit
+#ifndef SYSV
+extern char *strtok() ; /* some systems don't have this in strings.h */
 #endif
 #ifdef VMS
 #define getname vms_getname
 #endif
 
-#ifndef STDC_HEADERS
 double atof();
-#endif
+/*
+ *   These are the external routines we call.
+ */
+extern fontdesctype *newfontdesc() ;
+extern fontdesctype *matchfont() ;
+extern Boolean prescanchar() ;
+extern Boolean preselectfont() ;
+extern void scout(), error() ;
+extern void stringend() ;
+extern void cmdout() ;
+extern void numout() ;
+extern void lfontout() ;
+extern char *newstring() ;
+extern FILE *search() ;
+extern int add_name() ;
+extern struct resfont *findPSname();
+extern int add_header() ;
 
 /*
- *   The external declarations:
+ *   These are the external variables we access.
  */
-#include "protos.h"
+extern struct header_list *ps_fonts_used;
+extern char *infont ;
+extern fontdesctype *curfnt ;
+extern fontdesctype *fonthead ;
+extern integer fontmem ;
+extern fontdesctype *fonthd[MAXFONTHD] ;
+extern int nextfonthd ;
+extern char *nextstring ;
+extern char xdig[256] ;
+extern real conv ;
+extern integer pagecost ;
+extern int actualdpi ;
+extern double mag ;
+extern Boolean includesfonts ;
+extern char *figpath ;
+extern int to_close ;
+#ifdef DEBUG
+extern integer debug_flag;
+#endif  /* DEBUG */
 
 /*
  * Create a font descriptor for a font included in a psfile.  There will be
  * no fontmaptype node for the resulting font descriptor until this font is
  * encountered by fontdef() (if that ever happens).
  */
-static fontdesctype *
-ifontdef(char *name, char *area,
-	 int scsize, int dssize, char *scname)
+fontdesctype *
+ifontdef(name, area, scsize, dssize, scname)
+char *name, *scname, *area ;
+integer scsize, dssize ;
 {
    fontdesctype *fp;
 
    fp = newfontdesc((integer)0, scsize, dssize, name, area);
    fp->scalename = scname;
-   fp->next = fonthead;
-   fonthead = fp;
+   fp->next = fonthead ;
+   fonthead = fp ;
    return fp;
 }
 /*
  * When a font appears in an included psfile for the first time, this routine
  * links it into the fonthd[] array.
  */
-static void
-setfamily(fontdesctype *f)
+void
+setfamily(f)
+fontdesctype *f ;
 {
-   int i;
+   int i ;
 
    fontmem -= DICTITEMCOST;
    for (i=0; i<nextfonthd; i++)
@@ -67,66 +97,69 @@ setfamily(fontdesctype *f)
          return;
       }
    if (nextfonthd==MAXFONTHD)
-      error("! Too many fonts in included psfiles");
-   fontmem -= NAMECOST + strlen(f->name) + strlen(f->area);
-   fonthd[nextfonthd++] = f;
-   f->nextsize = NULL;
+      error("! Too many fonts in included psfiles") ;
+   fontmem -= NAMECOST + strlen(f->name) + strlen(f->area) ;
+   fonthd[nextfonthd++] = f ;
+   f->nextsize = NULL ;
 }
 /*
  * Convert file name s to a pair of new strings in the string pool.
  * The first string is the original value of nextstring; the second
  * string is the return value.
  */
-static char*
-getname(char *s)
+char*
+getname(s)
+char *s ;
 {
    char *a, *p, sav;
 
    a = NULL;
    for (p=s; *p!=0; p++)
       if (*p=='/')
-         a = p+1;
-   if (a==NULL) *nextstring++ = 0;
-   else {   sav = *a;
-      *a = 0;
-      (void) newstring(s);
-      *a = sav;
-      s = a;
+         a = p+1 ;
+   if (a==NULL) *nextstring++ = 0 ;
+   else {   sav = *a ;
+      *a = 0 ;
+      (void) newstring(s) ;
+      *a = sav ;
+      s = a ;
    }
    return newstring(s);
 }
 /*
- * Mark character usage in *f based on the hexadecimal bitmap found in
+ * Mark character usage in *f based on the hexadicimal bitmap found in
  * string s.  A two-digit offset separated by a colon gives the initial
  * character code.  We have no way of knowing how many times each character
  * is used or how many strings get created when showing the characters so
  * we just estimate two usages per character and one string per pair of
  * usages.
  */
-static void
-includechars(fontdesctype *f, char *s)
+void
+includechars(f, s)
+fontdesctype *f ;
+char *s ;
 {
-   int b, c, d;
-   int l = strlen(s);
+   int b, c, d ;
+   int l = strlen(s) ;
 
-   while (l > 0 && (s[l-1] == '\n' || s[l-1] == '\r'))
-      s[--l] = 0;
-   if (!ISXDIGIT(s[0]) || !ISXDIGIT(s[1]) || s[2]!=':'
+   if (l>0 && s[l-1]=='\n')
+      s[--l] = 0 ;
+   if (!isxdigit(s[0]) || !isxdigit(s[1]) || s[2]!=':'
          || strspn(s+3,"0123456789ABCDEFabcdef") < l-3) {
-      fprintf_str(stderr, "%s\n", s);
-      error("Bad syntax in included font usage table");
-      return;
+      fprintf(stderr, "%s\n", s) ;
+      error("Bad syntax in included font usage table") ;
+      return ;
    }
-   c = (xdig[(int)(s[0])] << 4) + xdig[(int)(s[1])];
-   s += 2;
+   c = (xdig[(int)(s[0])] << 4) + xdig[(int)(s[1])] ;
+   s += 2 ;
    while (*++s) {
-      d = xdig[(int)*s];
+      d = xdig[(int)*s] ;
       for (b=8; b!=0; b>>=1) {
          if ((d&b)!=0) {
-            pagecost ++;
-            (void) prescanchar(&f->chardesc[c]);
+            pagecost ++ ;
+            (void) prescanchar(&f->chardesc[c]) ;
          }
-         if (++c==256) return;
+         if (++c==256) return ;
       }
    }
 }
@@ -146,8 +179,9 @@ includechars(fontdesctype *f, char *s)
  * options like `hscale=' because then the definition of `fshow' would have
  * to change.
  */
-static void
-scan1fontcomment(char *p)
+void
+scan1fontcomment(p)
+char *p ;
 {
    char *q, *name, *area;
    char *scname;      /* location in buffer where we got scsize */
@@ -158,21 +192,21 @@ scan1fontcomment(char *p)
    DVIperBP = actualdpi/(72.0*conv) * (mag/1000.0);
    p = strtok(p, " ");
    if (p==NULL) return;
-   area = nextstring;   /* tentatively in the string pool */
+   area = nextstring ;   /* tentatively in the string pool */
    name = getname(p);
    q = strtok((char *)0, " ");
    if (p==NULL || (scsize=(integer)(atof(q)*DVIperBP))==0) {
-      fprintf_str(stderr, "%s\n",p);
+      fprintf(stderr, "%s\n",p);
       error("No scaled size for included font");
-      nextstring = area;   /* remove from string pool */
+      nextstring = area ;   /* remove from string pool */
       return;
    }
    scname = q;
    q = strtok((char *)0, " ");
    if (p==NULL || (dssize=(integer)(atof(q)*DVIperBP))==0) {
-      fprintf_str(stderr, "%s\n",p);
+      fprintf(stderr, "%s\n",p);
       error("No design size for included font");
-      nextstring = area;
+      nextstring = area ;
       return;
    }
    q = strtok((char *)0, " ");
@@ -198,11 +232,13 @@ scan1fontcomment(char *p)
  * book specifies two arguments. This routine will accept one or two arguments;
  * if there are two arguments we take the maximum.
  */
-static integer
-scanvm(char *p)
+integer
+scanvm(p)
+char *p ;
 {
    char* q;
    integer vm, vmmax;
+   extern long atol() ;
 
    q = strtok(p, " ");
    if (q==NULL) {
@@ -221,11 +257,14 @@ scanvm(char *p)
  * an associated header file (from psfonts.map), the header file
  * is added with add_header.
  */
-static void
-scan_fontnames(char *str, const char *psfile)
+void
+scan_fontnames(str,psfile)
+char *str;
+char *psfile;
 {
   char *p,*pe;
   struct resfont *re;
+  int i;
 
   /* Turn all newlines, CRs, and tabs into spaces. */
   p = str;
@@ -247,56 +286,48 @@ scan_fontnames(char *str, const char *psfile)
      pe = strchr(p,' ');
      if(pe != NULL) *pe = '\0';
 
-     add_name(p,&ps_fonts_used);
+     i = add_name(p,&ps_fonts_used);
 
-     if (1) {
+     if(i) {
 #ifdef DEBUG
        if (dd(D_FONTS))
-         fprintf_str(stderr,
+         (void)fprintf(stderr,
 		       "Adding font '%s' from included postscript file '%s'.\n",
 		       p,psfile);
 #endif  /* DEBUG */
 
        re = findPSname(p);
        if(re != NULL) {
-         if (re->sent != 2) {
-            if (re->Fontfile) {
-               add_header(re->Fontfile);
-            } else if (re->downloadheader) {
+         if (re->Fontfile) {
+            add_header(re->Fontfile) ;
+         } else if (re->downloadheader) {
 	/* this code borrowed from residentfont() in resident.c */
-	      char *cp = re->downloadheader;
-	      char *q;
-
-	      infont = re->PSname;
-	      while (1) {
-	        q = cp;
-	        while (*cp && *cp != ' ')
-                  cp++;
-  	        if (*cp) {
-                  *cp = 0;
-                  add_header(q);
-                  *cp++ = ' ';
-	        } else {
-                  add_header(q);
-                  break;
-	        }
-	        infont = 0;
-	      }
-            }
-	    infont = 0;
-          }
-          re->sent = 2;
-          if (unused_top_of_psnames < DOWNLOADEDPSSIZE) {
-             downloadedpsnames[unused_top_of_psnames] = xstrdup (re->PSname);
-             unused_top_of_psnames++;
-          }
-        } else {
-          char eb[1000];
-          snprintf(eb, sizeof(eb),
-                   "Font %s used in file %s is not in the mapping file.",
-                    p, psfile);
-          error(eb);
-        }
+	   char *cp = re->downloadheader ;
+	   char *q ;
+	 
+	   infont = re->PSname ;
+	   while (1) {
+	     q = cp ;
+	     while (*cp && *cp != ' ')
+               cp++ ;
+  	     if (*cp) {
+               *cp = 0 ;
+               add_header(q) ;
+               *cp++ = ' ' ;
+	     } else {
+               add_header(q) ;
+               break ;
+	     }
+	     infont = 0 ;
+	   }
+         }
+	 infont = 0 ;
+       } else {
+         char eb[1000];
+         sprintf(eb,"Font %s used in file %s is not in the mapping file.",
+                 p,psfile);
+         error(eb);
+       }
      }
 
      p = pe;
@@ -316,17 +347,19 @@ scan_fontnames(char *str, const char *psfile)
  */
 static int fc_state = 0;
 /*
- * Do we need to check for information at the end of the postscript file?
+ * Do we need to check for information at the end of the postscript file? 
  */
 static int check_atend = 0;
 
-static void
-scanfontusage(char *p, const char *psfile)
+void
+scanfontusage(p,psfile)
+char *p;
+char *psfile;
 {
   if (strncmp(p, "%%DocumentFonts: ",17) == 0) {
-    p += 17;
+    p += 17 ;
     while (*p && *p <= ' ')
-       p++;
+       p++ ;
     if(!strncmp(p,"(atend)",7)) {
       check_atend = 1;
     } else {
@@ -334,9 +367,9 @@ scanfontusage(char *p, const char *psfile)
       fc_state = 1;
     }
   } else if (strncmp(p, "%%DocumentNeededFonts: ",23)==0) {
-    p += 23;
+    p += 23 ;
     while (*p && *p <= ' ')
-       p++;
+       p++ ;
     if(!strncmp(p,"(atend)",7)) {
       check_atend = 1;
     } else {
@@ -347,9 +380,9 @@ scanfontusage(char *p, const char *psfile)
     scan_fontnames(p+3,psfile);
     fc_state = 1;
   } else if (strncmp(p, "%%DocumentNeededResources: ",27) == 0) {
-    p += 27;
+    p += 27 ;
     while (*p && *p <= ' ')
-       p++;
+       p++ ;
     if(!strncmp(p,"(atend)",7)) {
       check_atend = 1;
     } else {
@@ -357,9 +390,9 @@ scanfontusage(char *p, const char *psfile)
       fc_state = 2;
     }
   } else if (fc_state == 2 && strncmp(p,"%%+",3) == 0) {
-    p += 3;
+    p += 3 ;
     while (*p && *p <= ' ')
-       p++;
+       p++ ;
     if(!strncmp(p,"font ",5)) scan_fontnames(p+5,psfile);
     fc_state = 2;
   } else {
@@ -373,18 +406,19 @@ scanfontusage(char *p, const char *psfile)
  * usage specifications.  This does not handle the "atend" construction.
  */
 void
-scanfontcomments(const char *filename)
+scanfontcomments(filename)
+char* filename ;
 {
    char p[500];
    char *r;
    FILE *f;
-   integer truecost = pagecost;
-   Boolean trueknown = 0;
+   integer truecost = pagecost ;
+   Boolean trueknown = 0 ;
    fontdesctype *oldcf = curfnt;
 
 #ifdef DEBUG
       if (dd(D_FONTS))
-         fprintf_str(stderr,
+         (void)fprintf(stderr,
 		       "Checking for fonts in '%s'\n",filename);
 #endif  /* DEBUG */
 
@@ -392,14 +426,12 @@ scanfontcomments(const char *filename)
 /*
  *   Allow scanning of ` commands.  Better return same results both times.
  */
-      f = popen(filename+1, "r");
-      SET_BINARY(fileno(f));
-      to_close = USE_PCLOSE;
+      f = popen(filename+1, "r") ;
+      to_close = USE_PCLOSE ;
    } else {
-      f = search(figpath, filename, READ);
+      f = search(figpath, filename, READ) ;
    }
    if (f) {
-     SET_BINARY(fileno(f));
      fc_state = 0;
      check_atend = 0;
      while (fgets(p,500,f) && p[0]=='%' &&
@@ -407,28 +439,28 @@ scanfontcomments(const char *filename)
        if (strncmp(p, "%*Font:", 7) == 0) {
 	 scan1fontcomment(p+7);
        } else if (strncmp(p, "%%VMusage:", 9) == 0) {
-	 truecost += scanvm(p+10);
-	 trueknown = 1;
+	 truecost += scanvm(p+10) ;
+	 trueknown = 1 ;
        }
        scanfontusage(p,filename);
      }
      if (trueknown)
-       pagecost = truecost;
+       pagecost = truecost ;
 
      if(check_atend) {
 #ifdef DEBUG
        if (dd(D_FONTS))
-         fprintf_str(stderr,
+         (void)fprintf(stderr,
 		       "Checking for (atend) fonts in '%s'\n",filename);
 #endif  /* DEBUG */
 
        fc_state = 0;
-
+       
        fseek(f,-4096,2); /* seek to 4096 bytes before EOF. */
        fgets(p,500,f); /* throw away a partial line. */
 
        /* find %%Trailer */
-       while((r=fgets(p,500,f)) && strncmp(p,"%%Trailer",9));
+       while((r=fgets(p,500,f)) && strncmp(p,"%%Trailer",9)) ;
 
        /* look for specs that were deferred to the trailer. */
        if(r != NULL) {
@@ -439,13 +471,13 @@ scanfontcomments(const char *filename)
 #ifdef DEBUG
        else { /* r == NULL */
 	 if (dd(D_FONTS))
-         fprintf_str(stderr,
+         (void)fprintf(stderr,
 		       "Did not find %%%%Trailer in included file '%s'.\n",
 		       filename);
        }
 #endif  /* DEBUG */
      }
-     close_file(f);
+     close_file(f) ;
    }
    curfnt = oldcf;
 }
@@ -453,36 +485,38 @@ scanfontcomments(const char *filename)
  * Is string s less than 30 characters long with no special characters
  * that are not allowed in PostScript commands.
  */
-static Boolean
-okascmd(char *ss)
+Boolean
+okascmd(ss)
+char *ss ;
 {
-   register int c = 0;
-   register char *s = ss;
+   register c = 0 ;
+   register char *s = ss ;
 
    while (*s)
       if (*s<' ' || *s>126 || ++c==30)
-         return(0);
-   return(strcspn(ss,"()<>[]{}%/") == c);
+         return(0) ;
+   return(strcspn(ss,"()<>[]{}%/") == c) ;
 }
 /*
  * Output font area and font name strings as a literal string
  */
-static void
-nameout(char *area, char *name)
+void
+nameout(area, name)
+char *area, *name ;
 {
-   char buf[500];
-   char *s;
+   char buf[30] ;
+   char *s ;
 
    if (*area==0 && okascmd(name)) {
-      snprintf(buf, sizeof(buf), "/%s", name);
+      (void)sprintf(buf, "/%s", name) ;
       cmdout(name);
    } else {
       for (s=area; *s; s++)
-         scout(*s);
+         scout(*s) ;
       for (s=name; *s; s++)
-         scout(*s);
+         scout(*s) ;
       stringend();
-      cmdout("cvn");
+      cmdout("cvn") ;
    }
 }
 /*
@@ -490,7 +524,7 @@ nameout(char *area, char *name)
  * fonts used in included psfiles in the current section.
  */
 void
-fonttableout(void)
+fonttableout()
 {
    int i, k;
    fontdesctype *f;
@@ -501,13 +535,12 @@ fonttableout(void)
       if (f!=NULL) {
          nameout(f->area, f->name);
          k = 0;
-         do {
-            if (f->psflag==EXISTS) {
+         do {   if (f->psflag==EXISTS) {
                cmdout(f->scalename);
                lfontout((int)f->psname);
-               k++;
             }
             f = f->nextsize;
+            k++;
          } while (f!=NULL);
          numout((integer)k);
          cmdout("fstore");

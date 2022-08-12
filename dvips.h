@@ -1,41 +1,30 @@
-/*   $Id$
- *   Copyright 1986-2022 Tomas Rokicki.
+/*
  *   This is dvips, a freely redistributable PostScript driver
- *   for dvi files. You may freely use, modify and/or distribute this
- *   program or any portion thereof.
+ *   for dvi files.  It is (C) Copyright 1986-94 by Tomas Rokicki.
+ *   You may modify and use this program to your heart's content,
+ *   so long as you send modifications to Tomas Rokicki.  It can
+ *   be included in any distribution, commercial or otherwise, so
+ *   long as the banner string defined below is not modified (except
+ *   for the version number) and this banner is printed on program
+ *   invocation, or can be printed on program invocation with the -? option.
  */
 
 /*   This file is the header for dvips's global data structures. */
 
-#define CREATIONDATE
-
-#define MAX_CODE 0x110000
-#define MAX_2BYTES_CODE 0x10000
-#define VF_MEM_UNIT 0x10000
-#define CD_IDX(i)  ((i>=MAX_2BYTES_CODE ? MAX_2BYTES_CODE : i))
-
 #define BANNER \
-"This is dvips(k) " VERSION " Copyright 2022 Radical Eye Software"
-#define BANNER2 "(www.radicaleye.com)"
-#ifdef KPATHSEA
-#include "config.h"
-#include "debug.h"
-#endif
+"This is dvips 5.76 Copyright 1997 Radical Eye Software (www.radicaleye.com)\n"
 /*   Please don't turn debugging off! */
 #ifndef DEBUG
 #define DEBUG
 #endif
-
-#ifndef KPATHSEA
 #include <stdio.h>
-#if defined(SYSV) || defined(VMS) || defined(__THINK__) || defined(MSDOS) || defined(OS2) || defined(ATARIST) || defined(WIN32)
+#if defined(SYSV) || defined(VMS) || defined(__THINK__) || defined(MSDOS) || defined(OS2) || defined(ATARIST)
 #include <string.h>
 #else
 #include <strings.h>
 #endif
-#endif
 #if defined(lint) && defined(sun)
-extern char *sprintf();
+extern char *sprintf() ;
 #endif
 #include "paths.h"
 #include "debug.h"
@@ -60,14 +49,13 @@ extern char *sprintf();
  *   of a string that can be handled in specials, so it should not be
  *   set too small.
  */
-#define STRINGSIZE (200000) /* maximum total chars in strings in program */
+#define STRINGSIZE (25000)  /* maximum total chars in strings in program */
 #define RASTERCHUNK (8192)  /* size of chunk of raster */
 #define MINCHUNK (240)      /* minimum size char to get own raster */
-#define STACKSIZE (500)     /* maximum stack size for dvi files */
-#define MAXFRAME (50)       /* maximum depth of virtual font recursion */
-#define MAXFONTHD (1024)    /* number of unique names of included fonts */
+#define STACKSIZE (100)     /* maximum stack size for dvi files */
+#define MAXFRAME (10)       /* maximum depth of virtual font recursion */
+#define MAXFONTHD (100)     /* number of unique names of included fonts */
 #define STDOUTSIZE (75)     /* width of a standard output line */
-#define DOWNLOADEDPSSIZE (1000)  /* max number of downloaded fonts to check */
 /*
  *   Other constants, which define printer-dependent stuff.
  */
@@ -91,24 +79,16 @@ extern char *sprintf();
  */
 #if (defined(MSDOS) && !defined(DJGPP)) || (defined(OS2) && defined(_MSC_VER)) || defined(ATARIST)
 typedef long integer;
-typedef unsigned long uinteger;
 #else
 typedef int integer;
-typedef unsigned int uinteger;
 #endif
-#ifndef KPATHSEA
 typedef char boolean;
-#endif
 typedef double real;
-typedef short shalfword;
-typedef unsigned short halfword;
-typedef unsigned char quarterword;
-#ifdef WIN32
-#define Boolean boolean
-#else
+typedef short shalfword ;
+typedef unsigned short halfword ;
+typedef unsigned char quarterword ;
 #ifndef __THINK__
-typedef short Boolean;
-#endif
+typedef short Boolean ;
 #endif
 /*
  *   If the machine has a default integer size of 16 bits, and 32-bit
@@ -133,24 +113,24 @@ typedef short Boolean;
  */
 #define RESHASHPRIME (73)
 struct resfont {
-   struct resfont *next;
+   struct resfont *next ;
    char *Keyname, *PSname, *TeXname, *Fontfile, *Vectfile;
-   char *specialinstructions;
-   char *downloadheader; /* possibly multiple files */
-   quarterword sent;
-};
+   char *specialinstructions ;
+   char *downloadheader ; /* possibly multiple files */
+   quarterword sent ;
+} ;
 
 /*
  *   A chardesc describes an individual character.  Before the fonts are
  *   downloaded, the flags indicate that the character has already been used
  *   with the following meanings:
  */
-typedef struct tcd {
-   integer TFMwidth;
-   quarterword *packptr;
-   shalfword pixelwidth;
-   quarterword flags, flags2;
-} chardesctype;
+typedef struct {
+   integer TFMwidth ;
+   quarterword *packptr ;
+   shalfword pixelwidth ;
+   quarterword flags, dmy ;
+} chardesctype ;
 #define EXISTS (1)
 #define PREVPAGE (2)
 #define THISPAGE (4)
@@ -158,11 +138,6 @@ typedef struct tcd {
 #define REPACKED (16)
 #define BIGCHAR (32)
 #define STATUSFLAGS (EXISTS|REPACKED|BIGCHAR)
-/*
- *   The new field flags2 above is now an immutable field (once a font is
- *   loaded); for now it only indicates whether a character EXISTS or not.
- *   This fixes a problem with -G.
- */
 /*
  *   A fontdesc describes a font.  The name, area, and scalename are located in
  *   the string pool. The nextsize pointer is used to link fonts that are used
@@ -172,55 +147,48 @@ typedef struct tcd {
  *   psfile.  It can be 0, PREVPAGE, THISPAGE, or EXISTS.
  */
 typedef struct tfd {
-   integer checksum, scaledsize, designsize, thinspace, dir;
-   halfword dpi, loadeddpi;
-   halfword alreadyscaled;
-   halfword psname;
-   halfword loaded;
-   quarterword psflag;
-   quarterword codewidth;
-   integer maxchars;
-   integer llx, lly, urx, ury ;
-   char *name, *area;
-   struct resfont *resfont;
-   struct tft *localfonts;
-   struct tfd *next;
+   integer checksum, scaledsize, designsize, thinspace ;
+   halfword dpi, loadeddpi ;
+   halfword alreadyscaled ;
+   halfword psname ;
+   halfword loaded ;
+   halfword maxchars ;
+   char *name, *area ;
+   struct resfont *resfont ;
+   struct tft *localfonts ;
+   struct tfd *next ;
    struct tfd *nextsize;
    char *scalename;
-   chardesctype *chardesc;
-   int iswide, kind;
-} fontdesctype;
-
-#define VF_TEX   (1)
-#define VF_OMEGA (2)
-#define VF_PTEX  (3)
+   quarterword psflag;
+   chardesctype chardesc[256] ;
+} fontdesctype ;
 
 /*  A fontmap associates a fontdesc with a font number.
  */
 typedef struct tft {
-   integer fontnum;
-   fontdesctype *desc;
-   struct tft *next;
-} fontmaptype;
+   integer fontnum ;
+   fontdesctype *desc ;
+   struct tft *next ;
+} fontmaptype ;
 
 /*   Virtual fonts require a `macro' capability that is implemented by
  *   using a stack of `frames'.
  */
 typedef struct {
-   quarterword *curp, *curl;
-   fontdesctype *curf;
-   fontmaptype *ff;
-} frametype;
+   quarterword *curp, *curl ;
+   fontdesctype *curf ;
+   fontmaptype *ff ;
+} frametype ;
 
 /*
  *   The next type holds the font usage information in a 256-bit table;
  *   there's a 1 for each character that was used in a section.
  */
 typedef struct {
-   fontdesctype *fd;
-   halfword psfused;
-   halfword bitmap[16];
-} charusetype;
+   fontdesctype *fd ;
+   halfword psfused ;
+   halfword bitmap[16] ;
+} charusetype ;
 
 /*   Next we want to record the relevant data for a section.  A section is
  *   a largest portion of the document whose font usage does not overflow
@@ -233,17 +201,17 @@ typedef struct {
  *   the second phase.
  */
 typedef struct t {
-   integer bos;
-   struct t *next;
-   halfword numpages;
-} sectiontype;
+   integer bos ;
+   struct t *next ;
+   halfword numpages ;
+} sectiontype ;
 
 /*
  *   Sections are actually represented not by sectiontype but by a more
  *   complex data structure of variable size, having the following layout:
- *      sectiontype sect;
- *      charusetype charuse[numfonts];
- *      fontdesctype *sentinel = NULL;
+ *      sectiontype sect ;
+ *      charusetype charuse[numfonts] ;
+ *      fontdesctype *sentinel = NULL ;
  *   (Here numfonts is the number of bitmap fonts currently defined.)
  *    Since we can't declare this or take a sizeof it, we build it and
  *   manipulate it ourselves (see the end of the prescan routine).
@@ -252,12 +220,10 @@ typedef struct t {
  *   This is how we build up headers and other lists.
  */
 struct header_list {
-   struct header_list *next;
-   const char *Hname;
-   char *precode;
-   char *postcode;
-   char *name;
-};
+   struct header_list *next ;
+   char *Hname ;
+   char name[1] ;
+} ;
 /*
  *   Some machines define putlong in their library.
  *   We get around this here.
@@ -267,11 +233,11 @@ struct header_list {
  *   Information on available paper sizes is stored here.
  */
 struct papsiz {
-   struct papsiz *next;
-   integer xsize, ysize;
-   const char *name;
-   const char *specdat;
-};
+   struct papsiz *next ;
+   integer xsize, ysize ;
+   char *name ;
+   char *specdat ;
+} ;
 #ifdef MVSXA /* IBM: MVS/XA */
 /* this is where we fix problems with conflicts for truncation
    of long names (we might only do this if LONGNAME not set but ...) */
@@ -279,7 +245,7 @@ struct papsiz {
 #   define flushDashedPath flshDshdPth  /* conflict with flushDash */
 #   define PageList PgList  /* re-definition conflict with pagelist  */
 /* adding ascii2ebcdic conversion table to extern */
-    extern char ascii2ebcdic[];
+    extern char ascii2ebcdic[] ;
 #endif  /* IBM: MVS/XA */
 #ifdef VMCMS /* IBM: VM/CMS */
 /* this is where we fix problems with conflicts for truncation
@@ -287,9 +253,9 @@ struct papsiz {
 #   define pprescanpages pprscnpgs  /* confict with pprescan */
 #   define flushDashedPath flshDshdPth  /* conflict with flushDash */
 /* adding ascii2ebcdic conversion table to extern */
-    extern char ascii2ebcdic[];
+    extern char ascii2ebcdic[] ;
 /* redefining fopen for VMCMS, see DVIPSCMS.C */
-    extern FILE *cmsfopen();
+    extern FILE *cmsfopen() ;
 #   ifdef fopen
 #      undef fopen
 #   endif
@@ -307,73 +273,7 @@ struct papsiz {
 #define VOID void
 #endif
 
+extern int close_file(), to_close ;
+extern char *mymalloc() ;
 #define USE_PCLOSE (801)
 #define USE_FCLOSE (802)
-
-/* output Unicode string on console in windows */
-#if defined(KPATHSEA) && defined(WIN32)
-#undef  perror
-#define fprintf_str  win32_fprintf
-#define fputs_str    win32_fputs
-#define putc_str     win32_putc
-#define perror       win32_perror
-#else
-#define fprintf_str  fprintf
-#define fputs_str    fputs
-#define putc_str     putc
-#endif
-
-/* Things that KPATHSEA knows, and are useful even without it. */
-#if !defined(KPATHSEA)
-
-#if defined(MSDOS) || defined(OS2) || defined(WIN32)
-#define FOPEN_ABIN_MODE "ab"
-#define FOPEN_RBIN_MODE "rb"
-#else
-#define FOPEN_ABIN_MODE "a"
-#define FOPEN_RBIN_MODE "r"
-#endif
-
-#if (defined MSDOS || defined OS2 || defined WIN32)
-#define WRITEBIN "wb"
-#else
-#ifdef VMCMS
-#define WRITEBIN "wb, lrecl=1024, recfm=f"
-#else
-#define WRITEBIN "w"
-#endif
-#endif
-
-#if defined(WIN32)
-#define STDC_HEADERS
-#include <io.h>
-#include <fcntl.h>
-#define O_BINARY _O_BINARY
-#define register
-#define SET_BINARY(fd) (void)_setmode((fd), _O_BINARY)
-#else /* !WIN32 */
-#define SET_BINARY(fd) (void)0
-#endif
-
-#if defined(DEVICESEP)
-#define IS_DEVICE_SEP(c) ((c) == DEVICESEP)
-#else
-#define IS_DEVICE_SEP(c) 0
-#endif
-#define STREQ(s1, s2) (((s1) != NULL) && ((s2) != NULL) && !strcmp((s1), (s2)))
-
-#if defined(MSDOS) || defined(OS2) || defined(WIN32)
-#define NAME_BEGINS_WITH_DEVICE(name) (*(name) && IS_DEVICE_SEP((name)[1]))
-#define IS_DIR_SEP(c) ((c) == '/' || (c) == '\\')
-#define FILESTRCASEEQ(s1, s2) (strcasecmp (s1, s2) == 0)
-#else
-#define NAME_BEGINS_WITH_DEVICE(name) 0
-#define IS_DIR_SEP(c) ((c) == DIRSEP)
-#define FILESTRCASEEQ STREQ
-#endif
-
-#define TOLOWER(c) tolower(c)
-#define ISALNUM(c) isalnum(c)
-#define ISXDIGIT(c) (isascii (c) && isxdigit(c))
-
-#endif

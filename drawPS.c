@@ -79,42 +79,52 @@ char RCSid[] =
 
   */
 
-#include "dvips.h"
-
 #ifdef TPIC                     /* rest of the file !! */
 
+#include "dvips.h"
 #include <math.h>		/* used in function "arc" */
 
+#ifdef DEBUG
+extern integer debug_flag;
+#endif  /* DEBUG */
+
 /*
- *   The external declarations:
+ * external functions used here
  */
-#include "protos.h"
+extern void cmdout();
+extern void floatout();
+extern void numout();
+extern void error();
+
+/*
+ * external variables used here
+ */
+extern integer hh,vv;           /* the current x,y position in pixel units */
+extern int actualdpi ;
+extern int vactualdpi ;
+extern double mag ;
 
 #define convRESOLUTION DPI
 #define convVRESOLUTION VDPI
-#define tpicRESOLUTION 1000     /* number of tpic units per inch */
-#ifndef TRUE
 #define TRUE 1
 #define FALSE 0
-#endif
+#define tpicRESOLUTION 1000     /* number of tpic units per inch */
 
 /* convert from tpic units to PS units */
-#define PixRound(a,b) zPixRound((a),(b))
-#define convPS(x) PixRound((x), dir ? convVRESOLUTION : convRESOLUTION)
-#define convVPS(x) PixRound((x), dir ? convRESOLUTION : convVRESOLUTION)
-#define ConvPS(x) PixRound((x), convRESOLUTION)
-#define ConvVPS(x) PixRound((x), convVRESOLUTION)
+#define PixRound(a,b) zPixRound((integer)(a),(integer)(b))
+#define convPS(x) PixRound((x),convRESOLUTION)
+#define convVPS(x) PixRound((x),convVRESOLUTION)
 
 /* convert from tpic locn to abs horiz PS locn */
-#define hconvPS(x) dir ? (vv + ConvVPS(x)) : (hh + ConvPS(x))
+#define hconvPS(x) (integer)(hh + convPS(x))
 /* convert from tpic locn to abs vert PS locn */
-#define vconvPS(x) dir ? (-hh + ConvPS(x)) : (vv + ConvVPS(x))
+#define vconvPS(x) (integer)(vv + convVPS(x))
 /* convert to degrees */
-#define convDeg(x) (360*(x)/(2*3.14159265358979))
+#define convDeg(x) (360*(x)/(2*3.14159265358))
 
 /* if PostScript had splines, i wouldnt need to store the path */
-#define MAXPATHS 6000           /* maximum number of path segments */
-#define NONE            0       /* for shading */
+#define MAXPATHS 600            /* maximum number of path segments */
+#define NONE 0                  /* for shading */
 #define BLACK           1       /* for shading */
 #define GRAY		2       /* MJ; for shading */
 #define WHITE           3       /* for shading */
@@ -134,19 +144,20 @@ char RCSid[] =
  * saved by NEWPATH
  */
 
-static double xx[MAXPATHS], yy[MAXPATHS]; /* the current path in milli-inches */
+static integer xx[MAXPATHS], yy[MAXPATHS]; /* the current path in milli-inches */
 static integer pathLen = 0;             /* the current path length */
 static integer shading = NONE;  /* what to shade the last figure */
 static integer penSize = 2;             /* pen size in PS units */
 
 /* forward declarations */
 /* static void doShading(); */
-static double zPixRound(double, double);             /* (x/y)PixRound(x,y) */
+static integer zPixRound();             /* (int)(x/y)PixRound((int)x,(int)y) */
 static double  shadetp = 0.5;
              /* shading level, initialized as requested by tpic 2.0 -- MJ */
 
 void
-setPenSize(char *cp)
+setPenSize(cp)
+     char *cp;
 {
   long ps;
 
@@ -157,29 +168,32 @@ setPenSize(char *cp)
     }
 
   penSize = convPS(ps);
-  doubleout((integer)penSize);
+  numout((integer)penSize);
   cmdout("setlinewidth");
 }                               /* end setPenSize */
 
 void
-addPath(char *cp)
+addPath(cp)
+     char *cp;
 {
-  double x,y;
+  long x,y;
 
   if (++pathLen >= MAXPATHS) error("! Too many points");
-  if (sscanf(cp, " %lg %lg ", &x, &y) != 2)
+  if (sscanf(cp, " %ld %ld ", &x, &y) != 2)
     error("! Malformed path expression");
   xx[pathLen] = x;
   yy[pathLen] = y;
 }                               /* end of addPath */
 
 void
-arc(char *cp, int invis)
+arc(cp, invis)
+     char *cp;
+    int invis;
 {
-  double xc, yc, xrad, yrad;
-  double startAngle, endAngle;
+  long xc, yc, xrad, yrad;
+  float startAngle, endAngle;
 
-  if (sscanf(cp, " %lg %lg %lg %lg %lg %lg ", &xc, &yc, &xrad, &yrad,
+  if (sscanf(cp, " %ld %ld %ld %ld %f %f ", &xc, &yc, &xrad, &yrad,
              &startAngle, &endAngle) != 6)
     {
       error("Illegal arc specification");
@@ -199,18 +213,18 @@ arc(char *cp, int invis)
   if (shading) {
       /* first time for shading */
       cmdout(NEWPATH);
-      doubleout(hconvPS(xc));
-      doubleout(vconvPS(yc));
-      doubleout(convPS(xrad));
-      if (xrad != yrad || VDPI != DPI)
-         doubleout(convVPS(yrad));
-      doubleout(convDeg(startAngle));
-      doubleout(convDeg(endAngle));
+      numout((integer)hconvPS(xc));
+      numout((integer)vconvPS(yc));
+      numout((integer)convPS(xrad));
+      if (xrad != yrad && VDPI == DPI)
+	numout((integer)convPS(yrad));
+      floatout(convDeg(startAngle));
+      floatout(convDeg(endAngle));
 
       if (xrad == yrad && VDPI == DPI)		/* for arcs and circles */
-         cmdout("arc");
+	cmdout("arc");
       else
-         cmdout("ellipse");
+	cmdout("ellipse");
 
       cmdout(FILL);
       shading = NONE;
@@ -225,35 +239,35 @@ arc(char *cp, int invis)
 	 on my Apple LaserWriter).
 	 So I (MJ) singled out this case.
        */
-      double degStAng = convDeg(startAngle),
-             degEnAng = convDeg(endAngle);
+      float degStAng = convDeg(startAngle),
+            degEnAng = convDeg(endAngle);
 
       cmdout(NEWPATH);		/* save current point */
 
       if (degStAng != degEnAng) { /* normal case */
-	  doubleout(hconvPS(xc));
-	  doubleout(vconvPS(yc));
-	  doubleout(convPS(xrad));
-	  if (xrad != yrad || VDPI != DPI)
-	      doubleout(convVPS(yrad));
-	  doubleout(degStAng);
-	  doubleout(degEnAng);
+	  numout((integer)hconvPS(xc));
+	  numout((integer)vconvPS(yc));
+	  numout((integer)convPS(xrad));
+	  if (xrad != yrad)
+	      numout((integer)convPS(yrad));
+	  floatout(degStAng);
+	  floatout(degEnAng);
 
-	  if (xrad == yrad && VDPI == DPI)	/* for arcs and circles */
+	  if (xrad == yrad)	/* for arcs and circles */
 	      cmdout("arc");
 	  else
 	      cmdout("ellipse");
       }
       else {			/* draw a single dot */
-	  double xdot, ydot;
-	  xdot = ((double)xc + (double)xrad * cos ((startAngle + endAngle) / 2.0));
-	  ydot = ((double)yc + (double)yrad * sin ((startAngle + endAngle) / 2.0));
-	  doubleout(hconvPS(xdot));
-	  doubleout(vconvPS(ydot));
+	  long xdot, ydot;
+	  xdot = (long) ((double)xc + (double)xrad * cos ((startAngle + endAngle) / 2.0));
+	  ydot = (long) ((double)yc + (double)yrad * sin ((startAngle + endAngle) / 2.0));
+	  numout((integer)hconvPS(xdot));
+	  numout((integer)vconvPS(ydot));
 	  cmdout(MOVETO);
 	  /* +1 to make sure the dot is printed */
-	  doubleout(hconvPS(xdot)+1);
-	  doubleout(vconvPS(ydot)+1);
+	  numout((integer)hconvPS(xdot)+1);
+	  numout((integer)vconvPS(ydot)+1);
 	  cmdout(LINETO);
       }
 
@@ -268,18 +282,20 @@ arc(char *cp, int invis)
  * of a dashed box is solid.
  * The number of inches/dash must be adjusted accordingly.
  */
-static void
-flushDashedPath(int dotted, double inchesPerDash)
+void
+flushDashedPath(dotted, inchesPerDash)
+    int dotted;
+    float inchesPerDash;
 {
   register int i;
   int nipd = (integer) convPS((int) inchesPerDash);
 
   if (nipd == 0)
-    nipd = 1;
+    nipd = 1 ;
   if (pathLen < 2)
     {
       error("Path less than 2 points - ignored");
-      pathLen = 0;
+      pathLen = 0 ;
       return;
     }
 
@@ -287,10 +303,8 @@ flushDashedPath(int dotted, double inchesPerDash)
   for (i=2; i <= pathLen; i++) {
       integer dx = hconvPS(xx[i-1]) - hconvPS(xx[i]);
       integer dy = vconvPS(yy[i-1]) - vconvPS(yy[i]);
-      /* Cast to double before multiplying; otherwise, can result in
-         integer overflow and thus a negative result (eepic-nan.test).  */
-      double delta = sqrt(((double) dx) * dx + ((double) dy) * dy);
-      double ipd;
+      float delta = sqrt((double) (dx * dx + dy * dy));
+      float ipd;
       int ndashes;
 
       /*
@@ -311,25 +325,25 @@ flushDashedPath(int dotted, double inchesPerDash)
 	else
 	    ndashes += 1;
       } else if (ndashes < 1)
-         ndashes = 1;
+         ndashes = 1 ;
       ipd = delta / ndashes;
       if (ipd <= 0.0)
-         ipd = 1.0;
+         ipd = 1.0 ;
       cmdout("[");
       if (dotted) {
-	doubleout(penSize);
-	doubleout(fabs(ipd - penSize));
+	numout((integer)penSize);
+	floatout(fabs(ipd - penSize));
       } else                               /* if dashed */
-	doubleout(ipd);
+	floatout(ipd);
 
       cmdout("]");
-      doubleout(0);
+      numout((integer)0);
       cmdout("setdash");
-      doubleout(hconvPS(xx[i-1]));
-      doubleout(vconvPS(yy[i-1]));
+      numout((integer)hconvPS(xx[i-1]));
+      numout((integer)vconvPS(yy[i-1]));
       cmdout(MOVETO);
-      doubleout(hconvPS(xx[i]));
-      doubleout(vconvPS(yy[i]));
+      numout((integer)hconvPS(xx[i]));
+      numout((integer)vconvPS(yy[i]));
       cmdout(LINETO);
       cmdout(STROKE);
   }
@@ -338,14 +352,15 @@ flushDashedPath(int dotted, double inchesPerDash)
 }
 
 void
-flushPath(int invis)
+flushPath(invis)
+    int invis;
 {
   register int i;
 
   if (pathLen < 2)
     {
       error("Path less than 2 points - ignored");
-      pathLen = 0;
+      pathLen = 0 ;
       return;
     }
 
@@ -359,33 +374,33 @@ flushPath(int invis)
 
 #ifdef DEBUG
     if (dd(D_SPECIAL))
-        fprintf(stderr,
+        (void)fprintf(stderr,
 #ifdef SHORTINT
-            "flushpath(1): hh=%ld, vv=%ld, x=%lg, y=%lg, xPS=%lg, yPS=%lg\n",
+            "flushpath(1): hh=%ld, vv=%ld, x=%ld, y=%ld, xPS=%ld, yPS=%ld\n",
 #else   /* ~SHORTINT */
-            "flushpath(1): hh=%d, vv=%d, x=%lg, y=%lg, xPS=%lg, yPS=%lg\n",
+            "flushpath(1): hh=%d, vv=%d, x=%d, y=%d, xPS=%d, yPS=%d\n",
 #endif  /* ~SHORTINT */
                     hh, vv, xx[1], yy[1], hconvPS(xx[1]), vconvPS(yy[1]));
 #endif /* DEBUG */
   if (shading) {
       /* first time for shading */
       cmdout(NEWPATH); /* to save the current point */
-      doubleout(hconvPS(xx[1]));
-      doubleout(vconvPS(yy[1]));
+      numout((integer)hconvPS(xx[1]));
+      numout((integer)vconvPS(yy[1]));
       cmdout(MOVETO);
       for (i=2; i < pathLen; i++) {
 #ifdef DEBUG
 	if (dd(D_SPECIAL))
-	    fprintf(stderr,
+	    (void)fprintf(stderr,
 #ifdef SHORTINT
-		"flushpath(%ld): hh=%ld, vv=%ld, x=%lg, y=%lg, xPS=%lg, yPS=%lg\n",
+		"flushpath(%ld): hh=%ld, vv=%ld, x=%ld, y=%ld, xPS=%ld, yPS=%ld\n",
 #else   /* ~SHORTINT */
-		"flushpath(%d): hh=%d, vv=%d, x=%lg, y=%lg, xPS=%lg, yPS=%lg\n",
+		"flushpath(%d): hh=%d, vv=%d, x=%d, y=%d, xPS=%d, yPS=%d\n",
 #endif  /* ~SHORTINT */
 			i, hh, vv, xx[i], yy[i], hconvPS(xx[i]), vconvPS(yy[i]));
 #endif /* DEBUG */
-	doubleout(hconvPS(xx[i]));
-	doubleout(vconvPS(yy[i]));
+	numout((integer)hconvPS(xx[i]));
+	numout((integer)vconvPS(yy[i]));
 	cmdout(LINETO);
 	}
       /* Shading should always apply to a closed path
@@ -393,16 +408,16 @@ flushPath(int invis)
       if (xx[1] == xx[pathLen] && yy[1] == yy[pathLen])
 	cmdout(CLOSEPATH);
       else {
-	doubleout(hconvPS(xx[pathLen]));
-	doubleout(vconvPS(yy[pathLen]));
+	numout((integer)hconvPS(xx[pathLen]));
+	numout((integer)vconvPS(yy[pathLen]));
 	cmdout(LINETO);
 	cmdout(CLOSEPATH);
 	error("Attempt to fill a non-closed path");
 	fprintf(stderr,
 #ifdef SHORTINT
-		"\tfirst point: x=%lg, y=%lg; last point: x=%lg, y=%lg\n",
+		"\tfirst point: x=%ld, y=%ld; last point: x=%ld, y=%ld\n",
 #else   /* ~SHORTINT */
-		"\tfirst point: x=%lg, y=%lg; last point: x=%lg, y=%lg\n",
+		"\tfirst point: x=%d, y=%d; last point: x=%d, y=%d\n",
 #endif  /* ~SHORTINT */
 			xx[1], yy[1], xx[pathLen], yy[pathLen]);
 
@@ -414,19 +429,19 @@ flushPath(int invis)
 
   if (!invis) {
       cmdout(NEWPATH);		/* to save the current point */
-      doubleout(hconvPS(xx[1]));
-      doubleout(vconvPS(yy[1]));
+      numout((integer)hconvPS(xx[1]));
+      numout((integer)vconvPS(yy[1]));
       cmdout(MOVETO);
       for (i=2; i < pathLen; i++) {
-	  doubleout(hconvPS(xx[i]));
-	  doubleout(vconvPS(yy[i]));
+	  numout((integer)hconvPS(xx[i]));
+	  numout((integer)vconvPS(yy[i]));
 	  cmdout(LINETO);
       }
       if (xx[1] == xx[pathLen] && yy[1] == yy[pathLen])
 	  cmdout(CLOSEPATH);
       else {
-	  doubleout(hconvPS(xx[pathLen]));
-	  doubleout(vconvPS(yy[pathLen]));
+	  numout((integer)hconvPS(xx[pathLen]));
+	  numout((integer)vconvPS(yy[pathLen]));
 	  cmdout(LINETO);
       }
       cmdout(STROKE);
@@ -436,12 +451,14 @@ flushPath(int invis)
 }                               /* end of flushPath */
 
 void
-flushDashed(char *cp, int dotted)
+flushDashed(cp, dotted)
+     char *cp;
+     int dotted;
 {
-  double inchesPerDash;
+  float inchesPerDash;
   int savelen = pathLen;
 
-  if (sscanf(cp, " %lg ", &inchesPerDash) != 1)
+  if (sscanf(cp, " %f ", &inchesPerDash) != 1)
     {
       error ("Illegal format for dotted/dashed line");
       return;
@@ -462,16 +479,16 @@ flushDashed(char *cp, int dotted)
 }                               /* end of flushDashed */
 
 void
-flushSpline(char *cp)
+flushSpline(cp)
+    char *cp;
 {                               /* as exact as psdit!!! */
-  register long i;
-  register double px, py, dx, dy;
+  register long i, dxi, dyi, dxi1, dyi1;
 
   if (*cp) {
-      double inchesPerDash;
-      int ipd;
+      float inchesPerDash;
+      int ipd ;
 
-      if (sscanf(cp, "%lg ", &inchesPerDash) != 1) {
+      if (sscanf(cp, "%f ", &inchesPerDash) != 1) {
 	  error ("Illegal format for dotted/dashed spline");
 	  return;
       }
@@ -481,13 +498,13 @@ flushSpline(char *cp)
       if (ipd != 0) {
 	  cmdout("[");
 	  if (inchesPerDash < 0.0) /* dotted */ {
-	      doubleout(penSize);
-	      doubleout(fabs(convPS((int)-ipd) - penSize));
+	      numout((integer)penSize);
+	      numout((integer)fabs(convPS((int)-ipd) - penSize));
 	  } else		/* dashed */
-	      doubleout(convPS((int)ipd));
+	      numout((integer)convPS((int)ipd));
 
 	  cmdout("]");
-	  doubleout(0);
+	  numout((integer)0);
 	  cmdout("setdash");
       }
   }
@@ -499,30 +516,31 @@ flushSpline(char *cp)
     }
 
   cmdout(NEWPATH);      /* to save the current point */
-  doubleout(hconvPS(xx[1]));
-  doubleout(vconvPS(yy[1]));
+  numout((integer)hconvPS(xx[1]));
+  numout((integer)vconvPS(yy[1]));
   cmdout(MOVETO);
-  px = convPS(xx[1]);
-  py = convVPS(yy[1]);
-  doubleout(dx = convPS((xx[2]+xx[1])/2) - px);
-  doubleout(dy = convVPS((yy[2]+yy[1])/2) - py);
+  numout((integer)convPS((xx[2]-xx[1])/2));
+  numout((integer)convPS((yy[2]-yy[1])/2));
   cmdout(RLINETO);
 
   for (i=2; i < pathLen; i++)
     {
-      px += dx;
-      py += dy;
-      doubleout(convPS((xx[i-1]+5*xx[i])/6) - px);
-      doubleout(convVPS((yy[i-1]+5*yy[i])/6) - py);
-      doubleout(convPS((5*xx[i]+xx[i+1])/6) - px);
-      doubleout(convVPS((5*yy[i]+yy[i+1])/6) - py);
-      doubleout(dx = convPS((xx[i]+xx[i+1])/2) - px);
-      doubleout(dy = convVPS((yy[i]+yy[i+1])/2) - py);
+      dxi = convPS(xx[i] - xx[i-1]);
+      dyi = convVPS(yy[i] - yy[i-1]);
+      dxi1 = convPS(xx[i+1] - xx[i]);
+      dyi1 = convVPS(yy[i+1] - yy[i]);
+
+      numout((integer)dxi/3);
+      numout((integer)dyi/3);
+      numout((integer)(3*dxi+dxi1)/6);
+      numout((integer)(3*dyi+dyi1)/6);
+      numout((integer)(dxi+dxi1)/2);
+      numout((integer)(dyi+dyi1)/2);
       cmdout(RCURVETO);
     }
 
-  doubleout(hconvPS(xx[pathLen]));
-  doubleout(vconvPS(yy[pathLen]));
+  numout((integer)hconvPS(xx[pathLen]));
+  numout((integer)vconvPS(yy[pathLen]));
   cmdout(LINETO);
 
 /*  doShading(); */
@@ -539,7 +557,8 @@ flushSpline(char *cp)
 /* Count number of black bits in the pattern together with total number, */
 /* compute the average and use this as the PostScript gray level */
 void
-SetShade(register char *cp)
+SetShade(cp)
+register char *cp;
 {
     int blackbits = 0, totalbits = 0;
 
@@ -594,14 +613,15 @@ SetShade(register char *cp)
 }                               /* end of SetShade       */
 
 void
-shadeLast(char *cp)
+shadeLast(cp)
+    char *cp;
 {
-  char tpout[100];
+  char tpout[20];
 
   if (*cp) {
-      double tempShadetp;
+      float tempShadetp;
 
-      if (sscanf(cp, "%lg ", &tempShadetp) != 1)
+      if (sscanf(cp, "%f ", &tempShadetp) != 1)
 	  error ("Illegal format for shade level");
       else if (tempShadetp < 0.0 || tempShadetp > 1.0)
 	  error ("Invalid shade level");
@@ -615,29 +635,27 @@ shadeLast(char *cp)
   }
 
   shading = GRAY;
-  snprintf(tpout, sizeof(tpout), "%1.3f setgray", shadetp); 
-    /* priol@irisa.fr, MJ */
+  sprintf(tpout,"%1.3f setgray",shadetp); /* priol@irisa.fr, MJ */
   cmdout(tpout);
 }                               /* end of shadeLast */
 
 void
-whitenLast(void)
+whitenLast()
 {
   shading = WHITE;
   cmdout("1 setgray");
 }                               /* end of whitenLast */
 
 void
-blackenLast(void)
+blackenLast()
 {
   shading = BLACK;
   cmdout("0 setgray");          /* actually this aint needed */
 }                               /* end of whitenLast */
 
-#if 0
-/* Not used */
+/*
 static void
-doShading(void)
+doShading()
 {
   if (shading)
     {
@@ -648,20 +666,21 @@ doShading(void)
   else
     cmdout(STROKE);
 }                               !* end of doShading *!
-#endif
+*/
 
 /*
  *   We need to calculate (x * convDPI * mag) / (tpicResolution * 1000)
- *   So we use doubleing point.  (This should have a very small impact
+ *   So we use floating point.  (This should have a very small impact
  *   on the speed of the program.)
  */
-static double
-zPixRound(register double x, /* in DVI units */
-          register double convDPI  /* dots per inch */
-         )                         /* return rounded number of pixels */
+static integer
+zPixRound(x, convDPI)      /* return rounded number of pixels */
+        register integer x;             /* in DVI units */
+        register integer convDPI;       /* dots per inch */
 {
-   return ((x * mag * (double)convDPI /
-                    (1000.0 * tpicRESOLUTION)));
+   return ((integer)(x * mag * (float)convDPI /
+                    (1000.0 * tpicRESOLUTION))) ;
 }
 
 #endif /* TPIC */
+

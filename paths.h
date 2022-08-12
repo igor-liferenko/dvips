@@ -1,4 +1,4 @@
-/*   paths.h - public domain.
+/*
  *   OUTPATH is where to send the output.  If you want a .ps file to
  *   be created by default, set this to "".  If you want to automatically
  *   invoke a pipe (as in lpr), make the first character an exclamation
@@ -18,10 +18,10 @@
 #else
 #ifdef MVSXA  /* IBM: MVS/XA */
 #define DVIPSRC "dvips.profile"
-#else /* not IBM */
-#define DVIPSRC "$HOME/.dvipsrc"
-#endif  
+#else
+#define DVIPSRC ".dvipsrc"
 #endif  /* IBM: VM/CMS */
+#endif
 #endif
 
 #define HEADERFILE "tex.pro"
@@ -38,7 +38,6 @@
 #ifdef HPS
 #define HPSHEADER "hps.pro"
 #endif
-#ifndef KPATHSEA
 /* arguments to fopen */
 #define READ            "r"
 
@@ -49,11 +48,10 @@
 #define PATHSEP         ',' /* use same syntax as VMS */
 #define DIRSEP		':'
 #else
-#if defined MSDOS || defined OS2 || defined(ATARIST) || defined(WIN32)
+#if defined MSDOS || defined OS2 || defined(ATARIST)
 #define READBIN		"rb"	/* MSDOS and OS/2 must use binary mode */
 #define PATHSEP         ';'
 #define DIRSEP		'\\'
-#define DEVICESEP       ':'
 #else
 #ifdef VMS
 #define READBIN		"rb"	/* VMS must use binary mode */
@@ -79,6 +77,7 @@
 #endif
 #endif
 
+extern void error() ;
+
 /* paths are all in the Makefile; by not supplying defaults, we force
    the installer to set them up. */
-#endif /* ! KPATHSEA */

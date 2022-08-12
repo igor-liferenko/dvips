@@ -3,95 +3,126 @@
  */
 #include "dvips.h" /* The copyright notice in that file is included too! */
 /*
- *   The external declarations:
+ *   These are the external routines we call.
  */
-#include "protos.h"
-
-static int psfont;
+extern void dopage() ;
+extern void download() ;
+extern void dopsfont() ;
+extern integer signedquad() ;
+extern void skipover() ;
+extern void cmdout() ;
+extern void numout(), doubleout() ;
+extern void newline() ;
+extern void setup() ;
+extern void skipover() ;
+extern int skipnop() ;
+extern void skippage() ;
+extern int InPageList() ;
+extern char *mymalloc() ;
+extern void fonttableout() ;
+/*
+ *   These are the external variables we access.
+ */
+extern shalfword linepos ;
+extern FILE *dvifile ;
+extern FILE *bitfile ;
+extern integer pagenum ;
+extern long bytesleft ;
+extern quarterword *raster ;
+extern int quiet ;
+extern Boolean reverse, multiplesects, disablecomments ;
+extern Boolean evenpages, oddpages, pagelist ;
+extern int actualdpi ;
+extern int vactualdpi ;
+extern int prettycolumn ;
+extern integer hpapersize, vpapersize ;
+extern integer pagecopies ;
+static int psfont ;
+extern double mag ;
+extern char *fulliname ;
 #ifdef HPS
-int pagecounter;
+int pagecounter ;
+extern Boolean HPS_FLAG ;
 #endif
-
 /*
  *   Now we have the main procedure.
  */
 void
-dosection(sectiontype *s, int c)
+dosection(s, c)
+        sectiontype *s ;
+        int c ;
 {
-   charusetype *cu;
-   integer prevptr;
-   int np;
-   int k;
-   integer thispage = 0;
-   char buf[300]; /* really 253 */
-
-   bmenc_startsection() ;
-   dopsfont(s);
+   charusetype *cu ;
+   integer prevptr ;
+   int np ;
+   int k ;
+   integer thispage = 0 ;
+   char buf[104];
+   extern void cleanres() ;
+   dopsfont(s) ;
 #ifdef HPS
 	 if (HPS_FLAG) pagecounter = 0;
 #endif
 
    if (multiplesects) {
-     setup();
+     setup() ;
+   } else {
+      cmdout("TeXDict") ;
+      cmdout("begin") ;
    }
-   cmdout("TeXDict");
-   cmdout("begin");
-   numout(hpapersize);
-   numout(vpapersize);
-   doubleout(mag);
-   numout((integer)DPI);
-   numout((integer)VDPI);
-   /* possibly lines in eps files are supposed to be <= 255;
-      not worth testing the limits merely to output a long file name. */
-   snprintf(buf, sizeof(buf), "(%.250s)", fulliname);
-   cmdout(buf);
-   newline();
-   cmdout("@start");
+   numout(hpapersize) ;
+   numout(vpapersize) ;
+   doubleout(mag) ;
+   numout((integer)DPI) ;
+   numout((integer)VDPI) ;
+   sprintf(buf, "(%.99s)", fulliname) ;
+   cmdout(buf) ;
+   cmdout("@start") ;
    if (multiplesects)
-      cmdout("bos");
+      cmdout("bos") ;
 /*
  *   We insure raster is even-word aligned, because download might want that.
  */
    if (bytesleft & 1) {
-      bytesleft--;
-      raster++;
+      bytesleft-- ;
+      raster++ ;
    }
-   cleanres();
-   cu = (charusetype *) (s + 1);
-   psfont = 1;
+   cleanres() ;
+   cu = (charusetype *) (s + 1) ;
+   psfont = 1 ;
    while (cu->fd) {
       if (cu->psfused)
-         cu->fd->psflag = EXISTS;
-      download(cu++, psfont++);
+         cu->fd->psflag = EXISTS ;
+      download(cu++, psfont++) ;
    }
-   fonttableout();
+   fonttableout() ;
    if (! multiplesects) {
-      cmdout("end");
-      setup();
+      cmdout("end") ;
+      setup() ;
    }
    for (cu=(charusetype *)(s+1); cu->fd; cu++)
-      cu->fd->psflag = 0;
+      cu->fd->psflag = 0 ;
    while (c > 0) {
-      c--;
-      prevptr = s->bos;
+      c-- ;
+      prevptr = s->bos ;
       if (! reverse)
-         fseek(dvifile, (long)prevptr, 0);
-      np = s->numpages;
+         (void)fseek(dvifile, (long)prevptr, 0) ;
+      np = s->numpages ;
       while (np-- != 0) {
          if (reverse)
-            fseek(dvifile, (long)prevptr, 0);
-         pagenum = signedquad();
+            (void)fseek(dvifile, (long)prevptr, 0) ;
+         pagenum = signedquad() ;
 	 if ((evenpages && (pagenum & 1)) || (oddpages && (pagenum & 1)==0) ||
 	  (pagelist && !InPageList(pagenum))) {
 	    if (reverse) {
-               skipover(36);
-               prevptr = signedquad()+1;
+               skipover(36) ;
+               prevptr = signedquad()+1 ;
 	    } else {
-               skipover(40);
-	       skippage();
-	       skipnop();
+               skipover(40) ;
+	       skippage() ;
+	       skipnop() ;
 	    }
-	    ++np;	/* this page wasn't counted for s->numpages */
+	    ++np ;	/* this page wasn't counted for s->numpages */
 	    continue;
 	 }
 /*
@@ -99,75 +130,75 @@ dosection(sectiontype *s, int c)
  *   small, so we do it quick.
  */
          if (! quiet) {
-            int t = pagenum, i = 0;
+            int t = pagenum, i = 0 ;
             if (t < 0) {
-               t = -t;
-               i++;
+               t = -t ;
+               i++ ;
             }
             do {
-               i++;
-               t /= 10;
-            } while (t > 0);
+               i++ ;
+               t /= 10 ;
+            } while (t > 0) ;
             if (pagecopies < 20)
-               i += pagecopies - 1;
+               i += pagecopies - 1 ;
             if (i + prettycolumn > STDOUTSIZE) {
-               fprintf(stderr, "\n");
-               prettycolumn = 0;
+               fprintf(stderr, "\n") ;
+               prettycolumn = 0 ;
             }
-            prettycolumn += i + 1;
+            prettycolumn += i + 1 ;
 #ifdef SHORTINT
-            fprintf(stderr, "[%ld", pagenum);
+            (void)fprintf(stderr, "[%ld", pagenum) ;
 #else  /* ~SHORTINT */
-            fprintf(stderr, "[%d", pagenum);
+            (void)fprintf(stderr, "[%d", pagenum) ;
 #endif /* ~SHORTINT */
-            fflush(stderr);
+            (void)fflush(stderr) ;
          }
-         skipover(36);
-         prevptr = signedquad()+1;
+         skipover(36) ;
+         prevptr = signedquad()+1 ;
          for (k=0; k<pagecopies; k++) {
             if (k == 0) {
                if (pagecopies > 1)
-                  thispage = ftell(dvifile);
+                  thispage = ftell(dvifile) ;
             } else {
-               fseek(dvifile, (long)thispage, 0);
+               (void)fseek(dvifile, (long)thispage, 0) ;
                if (prettycolumn + 1 > STDOUTSIZE) {
-                  fprintf(stderr, "\n");
-                  prettycolumn = 0;
+                  (void)fprintf(stderr, "\n") ;
+                  prettycolumn = 0 ;
                }
-               fprintf(stderr, ".");
-               fflush(stderr);
-               prettycolumn++;
+               (void)fprintf(stderr, ".") ;
+               (void)fflush(stderr) ;
+               prettycolumn++ ;
             }
-            dopage();
+            dopage() ;
          }
          if (! quiet) {
-            fprintf(stderr, "] ");
-            fflush(stderr);
-            prettycolumn += 2;
+            (void)fprintf(stderr, "] ") ;
+            (void)fflush(stderr) ;
+            prettycolumn += 2 ;
          }
          if (! reverse)
-            skipnop();
+            (void)skipnop() ;
       }
    }
    if (! multiplesects && ! disablecomments) {
-      newline();
-      fprintf(bitfile, "%%%%Trailer\n");
+      newline() ;
+      (void)fprintf(bitfile, "%%%%Trailer\n") ;
    }
    if (multiplesects) {
       if (! disablecomments) {
-         newline();
-         fprintf(bitfile, "%%DVIPSSectionTrailer\n");
+         newline() ;
+         (void)fprintf(bitfile, "%%DVIPSSectionTrailer\n") ;
       }
-      cmdout("eos");
-      cmdout("end");
+      cmdout("eos") ;
    }
+   cmdout("end") ;
 #ifdef HPS
-   if (HPS_FLAG) cmdout("\nend"); /* close off HPSDict */
+   if (HPS_FLAG) cmdout("\nend") ; /* close off HPSDict */
 #endif
    if (multiplesects && ! disablecomments) {
-      newline();
-      fprintf(bitfile, "%%DVIPSEndSection\n");
-      linepos = 0;
+      newline() ;
+      (void)fprintf(bitfile, "%%DVIPSEndSection\n") ;
+      linepos = 0 ;
    }
 }
 /*
@@ -189,8 +220,8 @@ struct p_list_str {
 /**********************************************************************/
 /* Return true iff i is one of the desired output pages */
 
-int
-InPageList(integer i)
+int InPageList(i)
+integer i ;
 {
     register struct p_list_str *pl = ppages;
 
@@ -202,8 +233,8 @@ InPageList(integer i)
     return 0;
 }
 
-static void
-InstallPL(integer pslow, integer pshigh)
+void InstallPL (pslow, pshigh)
+integer pslow, pshigh;
 {
     register struct p_list_str   *pl;
 
@@ -218,12 +249,13 @@ InstallPL(integer pslow, integer pshigh)
    side effect, the page selection(s) is (are) prepended to ppages. */
 
 int
-ParsePages(register char *s)
+ParsePages (s)
+register char  *s;
 {
-    register int    c;		/* current character */
+    register int    c ;		/* current character */
     register integer  n = 0,	/* current numeric value */
 		    innumber;	/* true => gathering a number */
-    integer ps_low = 0, ps_high = 0;
+    integer ps_low = 0, ps_high = 0 ;
     int     range,		/* true => saw a range indicator */
 	    negative = 0;	/* true => number being built is negative */
 

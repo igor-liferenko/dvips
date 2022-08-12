@@ -12,101 +12,96 @@
  *   headers down.
  */
 #include "dvips.h" /* The copyright notice in that file is included too! */
-struct header_list *header_head;
+struct header_list *header_head ;
 /*
- *   The external declarations:
+ *   The external routines we use.
  */
-#include "protos.h"
-
-static int add_name_general(const char *s, struct header_list **what,
-                            char *pre, char *post);
-
-int
-add_name(const char *s, struct header_list **what)
-{
-  return (int) add_name_general (s, what, NULL, NULL);
-}
-
+extern char *newstring() ;
+extern void error() ;
+extern void copyfile() ;
+extern FILE *search() ;
+extern char errbuf[] ;
+extern integer fontmem, swmem ;
+extern char *headerpath ;
+extern char *infont ;
+extern int headersready ;
+#ifdef DEBUG
+extern integer debug_flag ;
+#endif
+#ifdef HPS
+extern Boolean noprocset ;
+extern Boolean HPS_FLAG ;
+#endif
 /*
  *   This more general routine adds a name to a list of unique
  *   names.
  */
-static int
-add_name_general(const char *s, struct header_list **what, char *pre, char *post)
+int
+add_name(s, what)
+   char *s ;
+   struct header_list **what ;
 {
-   struct header_list *p, *q;
+   struct header_list *p, *q ;
 
-   for (p = *what; p != NULL; p = p->next)
+   for (p = *what ; p != NULL; p = p->next)
       if (strcmp(p->name, s)==0)
-         return 0;
-   q = (struct header_list *)mymalloc((integer)(sizeof(struct header_list)));
-   q->name = mymalloc(strlen(s) + 1);
-   q->Hname = infont;
-   q->next = NULL;
-   q->precode = pre;
-   q->postcode = post;
-   strcpy(q->name, s);
+         return 0 ;
+   q = (struct header_list *)mymalloc((integer)(sizeof(struct header_list)
+                                          + strlen(s))) ;
+   q->Hname = infont ;
+   q->next = NULL ;
+   strcpy(q->name, s) ;
    if (*what == NULL)
-      *what = q;
+      *what = q ;
    else {
-      for (p = *what; p->next != NULL; p = p->next);
-      p->next = q;
+      for (p = *what; p->next != NULL; p = p->next) ;
+      p->next = q ;
    }
-   return 1;
+   return 1 ;
 }
 /*
  *   This function checks the virtual memory usage of a header file.
  *   If we can find a VMusage comment, we use that; otherwise, we use
  *   length of the file.
  */
-void
-checkhmem(const char *s, char *pre, char *post)
+void checkhmem(s)
+char *s ;
 {
-   FILE *f;
+   FILE *f = search(headerpath, s, READ) ;
 
-   f = search(headerpath, s, READBIN);
-   if (pre || post) {
-      if (f==NULL)
-	 f = search(figpath, s, READBIN);
-   }
    if (f==0) {
-      char *msg = concat ("! Couldn't find header file: ", s);
-
-      if (secure == 2) {
-        msg = concat (msg,
-                   "\nAbsolute and ../relative paths are denied in -R2 mode.");
-      }
-      error(msg);
+      (void)sprintf(errbuf, "! Couldn't find header file %s", s) ;
+      error(errbuf) ;
    } else {
-      int len, i, j;
-      long mem = -1;
-      char buf[1024];
+      int len, i, j ;
+      long mem = -1 ;
+      char buf[1024] ;
 
-      len = fread(buf, sizeof(char), 1024, f);
+      len = fread(buf, sizeof(char), 1024, f) ;
       for (i=0; i<len-20; i++)
          if (buf[i]=='%' && strncmp(buf+i, "%%VMusage:", 10)==0) {
             if (sscanf(buf+i+10, "%d %ld", &j, &mem) != 2)
-               mem = -1;
-            break;
+               mem = -1 ;
+            break ;
          }
       if (mem == -1) {
-         mem = 0;
+         mem = 0 ;
          while (len > 0) {
-            mem += len;
-            len = fread(buf, sizeof(char), 1024, f);
+            mem += len ;
+            len = fread(buf, sizeof(char), 1024, f) ;
          }
       }
       if (mem < 0)
-         mem = DNFONTCOST;
-      (*close_file) (f);
+         mem = DNFONTCOST ;
+      fclose(f) ;
 #ifdef DEBUG
       if (dd(D_HEADER))
-         fprintf_str(stderr, "Adding header file \"%s\" %ld\n",
-                                s, mem);
+         (void)fprintf(stderr, "Adding header file \"%s\" %ld\n",
+                                s, mem) ;
 #endif
-      fontmem -= mem;
+      fontmem -= mem ;
       if (fontmem > 0) /* so we don't count it twice. */
-         swmem -= mem;
+         swmem -= mem ;
    }
 }
 /*
@@ -115,67 +110,61 @@ checkhmem(const char *s, char *pre, char *post)
  *   use that; otherwise, we use the length of the file.
  */
 int
-add_header(const char *s)
+add_header(s)
+char *s ;
 {
-  return (int) add_header_general (s, NULL, NULL);
-}
+   int r ;
 
-int
-add_header_general(const char *s, char *pre, char *post)
-{
-   int r;
-
-   r = add_name_general(s, &header_head, pre, post);
+   r = add_name(s, &header_head) ;
    if (r) {
       if (headersready == 1) {
-         struct header_list *p = header_head;
+         struct header_list *p = header_head ;
 
          while (p) {
-            checkhmem(p->name, p->precode, p->postcode);
-            p = p->next;
+            checkhmem(p->name) ;
+            p = p->next ;
          }
-         headersready = 2;
+         headersready = 2 ;
       } else if (headersready == 2) {
-         checkhmem(s, pre, post);
+         checkhmem(s) ;
       }
    }
-   return r;
+   return r ;
 }
 /*
  *   This routine runs down a list, returning each in order.
  */
-static struct header_list *CUR_head = NULL;
 char *
-get_name(struct header_list **what)
+get_name(what)
+   struct header_list **what ;
 {
    if (what && *what) {
-      char *p = (*what)->name;
-      infont = (*what)->Hname;
-      CUR_head = *what;
-      *what =  (*what)->next;
-      return p;
+      char *p = (*what)->name ;
+      infont = (*what)->Hname ;
+      *what =  (*what)->next ;
+      return p ;
    } else
-      return 0;
+      return 0 ;
 }
 /*
  *   This routine actually sends the headers.
  */
 void
-send_headers(void) {
-   struct header_list *p = header_head;
-   char *q;
+send_headers() {
+   struct header_list *p = header_head ;
+   char *q ;
 
    while (0 != (q=get_name(&p))) {
 #ifdef DEBUG
       if (dd(D_HEADER))
-         fprintf_str(stderr, "Sending header file \"%s\"\n", q);
+         (void)fprintf(stderr, "Sending header file \"%s\"\n", q) ;
 #endif
 #ifdef HPS
      if (HPS_FLAG) {
- 	     if (strcmp(q,"target.dct")==0) noprocset = 1;
+ 	     if (strcmp(q,"target.dct")==0) noprocset = 1 ;
        }
 #endif
-      copyfile_general(q, CUR_head);
+      copyfile(q) ;
    }
-   infont = NULL;
+   infont = 0 ;
 }

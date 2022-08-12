@@ -4,71 +4,76 @@
  *  between pages.
  */
 #include "dvips.h" /* The copyright notice in that file is included too! */
-#ifdef KPATHSEA
-#include <kpathsea/magstep.h>
-#endif
-
 /*
- *   The external declarations:
+ *   These are the external routines we call.
  */
-#include "protos.h"
-
+extern shalfword dvibyte() ;
+extern halfword twobytes() ;
+extern integer threebytes(), signedquad() ;
+extern void skipover(), error() ;
+/*
+ *   The external variables we use:
+ */
+extern char *nextstring, *maxstring ;
+extern double mag ;
+extern fontdesctype *baseFonts[] ;
+#ifdef DEBUG
+extern integer debug_flag;
+#endif  /* DEBUG */
+extern int actualdpi ;
+extern real alpha ;
+extern fontmaptype *ffont ;
+extern fontdesctype *fonthead ;
+extern halfword dpicheck() ;
+extern integer fsizetol ;
 /*
  * newfontdesc creates a new font descriptor with the given parameters and
  * returns a pointer to the new object.
 */
 fontdesctype*
-newfontdesc(integer cksum, integer scsize, integer dssize,
-            char *name, char *area)
+newfontdesc(cksum, scsize, dssize, name, area)
+integer cksum, scsize, dssize ;
+char *name, *area ;
 {
-   register fontdesctype *fp;
+   register fontdesctype *fp ;
 
-   fp = (fontdesctype *)mymalloc((integer)sizeof(fontdesctype));
-   fp->chardesc = (chardesctype *)mymalloc(256*(integer)sizeof(chardesctype));
-   fp->maxchars = 256;
-   fp->iswide = 0;
-   fp->psname = 0;
-   fp->loaded = 0;
-   fp->checksum = cksum;
-   fp->scaledsize = scsize;
-   fp->designsize = dssize;
-   fp->thinspace = scsize / 6;
-   fp->scalename = NULL;
-   fp->psflag = 0;
-   fp->codewidth = 1;
+   fp = (fontdesctype *)mymalloc((integer)sizeof(fontdesctype)) ;
+   fp->psname = 0 ;
+   fp->loaded = 0 ;
+   fp->checksum = cksum ;
+   fp->scaledsize = scsize ;
+   fp->designsize = dssize ;
+   fp->thinspace = scsize / 6 ;
+   fp->scalename = NULL ;
+   fp->psflag = 0 ;
    fp->name = name;
 #ifdef VMCMS   /* IBM: VM/CMS */
    {
-     int i;
-     for ( i=0; fp->name[i]; i++ )
-       fp->name[i] = ascii2ebcdic[ fp->name[i] ];
+     int i ;
+     for ( i=0 ; fp->name[i] ; i++ )
+       fp->name[i] = ascii2ebcdic[ fp->name[i] ] ;
    }
 #else
 #ifdef MVSXA   /* IBM: MVS/XA */
    {
-     int i;
-     for ( i=0; fp->name[i]; i++ )
-       fp->name[i] = ascii2ebcdic[ fp->name[i] ];
+     int i ;
+     for ( i=0 ; fp->name[i] ; i++ )
+       fp->name[i] = ascii2ebcdic[ fp->name[i] ] ;
    }
 #endif   /* IBM: MVS/XA */
 #endif   /* IBM: VM/CMS */
    fp->area = area;
-   fp->resfont = NULL;
-   fp->localfonts = NULL;
-#ifdef KPATHSEA
-   fp->dpi = kpse_magstep_fix ((halfword)(mag*(float)fp->scaledsize*DPI/
-         ((float)fp->designsize*1000.0)+0.5), DPI, NULL);
-#else
+   fp->resfont = NULL ;
+   fp->localfonts = NULL ;
    fp->dpi = dpicheck((halfword)(mag*fp->scaledsize*DPI/
-         ((float)fp->designsize*1000.0)+0.5));
-#endif
-   fp->loadeddpi = fp->dpi;
+         ((float)fp->designsize*1000.0)+0.5)) ;
+   fp->loadeddpi = fp->dpi ;
 #ifdef DEBUG
    if (dd(D_FONTS))
-      fprintf_str(stderr,"Defining font (%s) %s at %.1fpt\n",
-         area, name, (real)scsize/(alpha*0x100000));
+      (void)fprintf(stderr,"Defining font (%s) %s at %.1fpt\n",
+         area, name, (real)scsize/(alpha*0x100000)) ;
 #endif /* DEBUG */
-   return fp;
+   return fp ;
 }
 /*
  * Try to find a font with a given name and approximate scaled size, returning
@@ -79,27 +84,28 @@ newfontdesc(integer cksum, integer scsize, integer dssize,
  * read from an included psfile.
  */
 fontdesctype *
-matchfont(char *name, char *area, integer scsize, char *scname)
+matchfont(name, area, scsize, scname)
+char *area, *name, *scname ;
+integer scsize ;
 {
    register fontdesctype *fp;
    register integer smin, smax;
 
-   smin = scsize - fsizetol;
-   smax = scsize + fsizetol;
+   smin = scsize - fsizetol ;
+   smax = scsize + fsizetol ;
    for (fp=fonthead; fp; fp=fp->next)
       if (smin < fp->scaledsize && fp->scaledsize < smax &&
-            strcmp(name,fp->name)==0 && strcmp(area,fp->area)==0) {
+            strcmp(name,fp->name)==0 && strcmp(area,fp->area)==0)
          if (scname == NULL) {
             if (fp->scalename!=NULL || scsize==fp->scaledsize)
-               break;
+               break ;
          } else {
             if (fp->scalename==NULL || strcmp(scname,fp->scalename)==0)
-               break;
+               break ;
          }
-      }
 #ifdef DEBUG
    if (dd(D_FONTS) && fp)
-      fprintf(stderr,"(Already known.)\n");
+      (void)fprintf(stderr,"(Already known.)\n") ;
 #endif /* DEBUG */
    return fp;
 }
@@ -108,54 +114,58 @@ matchfont(char *name, char *area, integer scsize, char *scname)
  *   into its data structures.
  */
 void
-fontdef(int siz)
+fontdef(siz)
+int siz ;
 {
-   register integer i, j, fn;
-   register fontdesctype *fp;
-   register fontmaptype *cfnt;
-   char *name, *area;
-   integer cksum, scsize, dssize;
+   register integer i, j, fn ;
+   register fontdesctype *fp ;
+   register fontmaptype *cfnt ;
+   char *name, *area ;
+   integer cksum, scsize, dssize ;
+   extern void skipover() ;
 
-   fn = dvibyte();
+   fn = dvibyte() ;
    while (siz-- > 1)
-      fn = (fn << 8) + dvibyte();
+      fn = (fn << 8) + dvibyte() ;
    for (cfnt=ffont; cfnt; cfnt = cfnt->next)
-      if (cfnt->fontnum == fn) goto alreadydefined;
-   cfnt = (fontmaptype *)mymalloc((integer)sizeof(fontmaptype));
-   cfnt->next = ffont;
-   ffont = cfnt;
-   cfnt->fontnum = fn;
-   cksum = signedquad();
-   scsize = signedquad();
-   dssize = signedquad();
-   i = dvibyte(); j = dvibyte();
+      if (cfnt->fontnum == fn) goto alreadydefined ;
+   cfnt = (fontmaptype *)mymalloc((integer)sizeof(fontmaptype)) ;
+   cfnt->next = ffont ;
+   ffont = cfnt ;
+   cfnt->fontnum = fn ;
+   cksum = signedquad() ;
+   scsize = signedquad() ;
+   dssize = signedquad() ;
+   i = dvibyte() ; j = dvibyte() ;
    if (nextstring + i + j > maxstring)
-      error("! out of string space");
-   area = nextstring;
+      error("! out of string space") ;
+   area = nextstring ;
    for (; i>0; i--)
-      *nextstring++ = dvibyte();
-   *nextstring++ = 0;
-   name = nextstring;
+      *nextstring++ = dvibyte() ;
+   *nextstring++ = 0 ;
+   name = nextstring ;
    for (; j>0; j--)
-      *nextstring++ = dvibyte();
-   *nextstring++ = 0;
-   fp = matchfont(name, area, scsize, (char *)0);
+      *nextstring++ = dvibyte() ;
+   *nextstring++ = 0 ;
+   fp = matchfont(name, area, scsize, (char *)0) ;
    if (fp) {
-      nextstring = name;
-      fp->checksum = cksum;
+      nextstring = name ;
+      fp->checksum = cksum ;
    } else {
-      fp = newfontdesc(cksum, scsize, dssize, name, area);
-      fp->next = fonthead;
-      fonthead = fp;
+      fp = newfontdesc(cksum, scsize, dssize, name, area) ;
+      fp->next = fonthead ;
+      fonthead = fp ;
    }
-   cfnt->desc = fp;
-   return;
+   cfnt->desc = fp ;
+   if (fn < 256)
+      baseFonts[fn] = fp ;
+   return ;
 alreadydefined:
 /* A DVI file will not define a font twice; but we may be scanning
  * a font definition twice because a new section has started,
  * or because of collated copies. */
-      skipover(12);
-      skipover(dvibyte()+dvibyte());
+      skipover(12) ;
+      skipover(dvibyte()+dvibyte()) ;
 }
 
 /*
@@ -165,19 +175,19 @@ alreadydefined:
  *   Now handles specials (but ignores them)
  */
 int
-skipnop(void)
+skipnop()
 {
-  register int cmd;
+  register int cmd ;
 
    while (1) {
       switch(cmd=dvibyte()) {
-case 138: break;
-case 239: skipover((int)dvibyte()); break; /* xxx1 */
-case 240: skipover((int)twobytes()); break; /* xxx2 */
-case 241: skipover((int)threebytes()); break; /* xxx3 */
-case 242: skipover((int)signedquad()); break; /* xxx4 */
-case 243: case 244: case 245: case 246: fontdef(cmd-242); break;
-default: return cmd;
+case 138: break ;
+case 239: skipover((int)dvibyte()) ; break ; /* xxx1 */
+case 240: skipover((int)twobytes()) ; break ; /* xxx2 */
+case 241: skipover((int)threebytes()) ; break ; /* xxx3 */
+case 242: skipover((int)signedquad()) ; break ; /* xxx4 */
+case 243: case 244: case 245: case 246: fontdef(cmd-242) ; break ;
+default: return cmd ;
       }
    }
 }

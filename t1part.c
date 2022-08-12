@@ -10,16 +10,16 @@
  */
 #include "dvips.h"
 #include "t1part.h"
-#ifndef SEEK_SET
-#define SEEK_SET (0)
-#endif
+
+int LoadVector() ;
+int Afm() ;
 
 #ifdef BORLANDC
 void huge *UniGetMem(size)
-ub4 size;
+ub4 size ;
 {
     void huge *tmp;
-    if ((tmp =(void huge*) farcalloc(1L, size)) == NULL)
+    if ((tmp =(void huge*) farmalloc(size)) == NULL)
     {
         fprintf(stderr,"Error allocating far memory\n");
         exit(1);
@@ -65,14 +65,6 @@ int CharCount;
 int GridCount;
 int ind_ref;
 
-static unsigned char CDeCrypt(unsigned char, unsigned int *);
-static void CorrectGrid(void);
-static void OutHEX(FILE *);
-static int Afm(void);
-static int LoadVector(int, CHAR *);
-static int ChooseVect(CHAR *);
-static void ErrorOfScan(int err);
-static void NameOfProgram(void);
 
 typedef struct
 {
@@ -176,9 +168,9 @@ def_ref refer[10];
 #define POP             17
 #define SETCURRENTPOINT 33
 
-typetemp  BORLAND_HUGE   *temp;
-typetemp  BORLAND_HUGE   *begin_of_scan;
-typetemp  BORLAND_HUGE   *end_of_scan;
+typetemp  _HUGE   *temp;
+typetemp  _HUGE   *begin_of_scan;
+typetemp  _HUGE   *end_of_scan;
 unsigned char *line;
 unsigned char *tmpline;
 unsigned char token[64];
@@ -215,7 +207,7 @@ static int flg_seac=0;
 
 typedef struct
 {
-    const char *command;
+    char *command;
     int code;
 }
 tablecommand;
@@ -228,7 +220,7 @@ tablecommand TableCommand[] =
 
 typedef struct
 {
-    const char *extension;
+    char *extension;
     int num;
 }
 typefonts;
@@ -240,11 +232,11 @@ typefonts TypeFonts[] =
     {".PFA", PFA}, {".PFB", PFB}, {""}
 };
 
-static char Dup[]="dup";
+char Dup[]="dup";
 
 typedef struct
 {
-    typetemp  BORLAND_HUGE  *begin;
+    typetemp  _HUGE  *begin;
     int   length;
     int   type;
     int   offset;
@@ -262,7 +254,7 @@ int subrs, char_str;
 
 typedef struct
 {
-    const char *name;
+    char *name;
     int num;
 }
 type_key;
@@ -276,7 +268,7 @@ type_key Key[] =
 
 struct def_label
 {
-    typetemp  BORLAND_HUGE   *begin;
+    typetemp  _HUGE   *begin;
     unsigned char skip;
     int length;
     short select;
@@ -287,21 +279,23 @@ struct def_label label[NUM_LABEL];
 
 
 
-static int
-DefTypeFont(unsigned char *name)
+int DefTypeFont
+(name)
+unsigned char *name ;
 {
     int i;
 
     for(i=0;*TypeFonts[i].extension;i++)
     {
-        if(strstr((char *)name,TypeFonts[i].extension)!=0)
+        if(strstr(name,TypeFonts[i].extension)!=0)
             return(TypeFonts[i].num);
     }
     return -1;
 }
 
-static int
-GetZeroLine(unsigned char *str)
+int GetZeroLine
+(str)
+unsigned char *str ;
 {
     int token_type=0;
     if(*str!='0')
@@ -322,8 +316,9 @@ GetZeroLine(unsigned char *str)
 
 /* We get token type and its content for ASCII code */
 
-static int
-GetWord(unsigned char *mem)
+int GetWord
+(mem)
+unsigned char *mem ;
 {
     int  token_type=0;
     register unsigned char *tmp;
@@ -365,8 +360,7 @@ GetWord(unsigned char *mem)
         }
         if(isalpha(*line))
         {
-            *tmp++ = *line++;
-            while(!isspace(*line) && *line != '/')
+            while(!isspace(*line))
                 *tmp++= *line++;
             *tmp = '\0';
             return(token_type=token_type+2);
@@ -381,8 +375,7 @@ GetWord(unsigned char *mem)
 
 /* We get token type and its content for BINARY code */
 
-static int
-GetToken(void)
+int GetToken()
 {
     register unsigned char *tmp;
     int token_type=0;
@@ -405,7 +398,7 @@ GetToken(void)
 
         if(isalpha(*temp))
         {
-            while(isalnum(*temp) || *temp == '.')
+            while(isalnum(*temp))
                 *tmp++= *temp++;
 
             *tmp = '\0';
@@ -419,8 +412,7 @@ GetToken(void)
     return(token_type= -1);
 }
 
-static int
-GetNum(void)
+int GetNum()
 {
     unsigned char *tmp;
     tmp=token;
@@ -433,7 +425,7 @@ GetNum(void)
             while(isdigit(*temp))
                 *tmp++= *temp++;
             *tmp = '\0';
-            return(atoi((char *)token));
+            return(atoi(token));
         }
         temp++;
     }
@@ -443,8 +435,7 @@ GetNum(void)
 
 /* We pass token without definition its type, it's for speed */
 
-static int
-PassToken(void)
+int PassToken()
 {
     while(temp < end_of_scan)
     {
@@ -463,8 +454,9 @@ PassToken(void)
 /*  Simple pass off without charstring decrypting */
 /*                                                */
 
-static int
-PassString(unsigned char flg)
+int PassString
+(flg)
+unsigned char flg;
 {
     int len_str;
 
@@ -491,11 +483,12 @@ PassString(unsigned char flg)
     return 1;
 }
 
-void *
-getmem(unsigned size)
+void *getmem
+(size)
+unsigned size ;
 {
     void *tmp;
-    if ((tmp = calloc(1, size)) == NULL)
+    if ((tmp = malloc(size)) == NULL)
     {
         fprintf(stderr,"Error allocating memory\n");
         exit(1);
@@ -503,15 +496,16 @@ getmem(unsigned size)
     return tmp;
 }
 
-static CHAR *
-AddChar(CHAR *TmpChar, unsigned char *CharName, int num)
+CHAR *AddChar(TmpChar,CharName, num)
+CHAR *TmpChar;
+unsigned char *CharName ; int num ;
 {
     int length;
 
-    CHAR *ThisChar = (CHAR*) getmem(sizeof(CHAR));
-    length         = strlen((char *) CharName);
-    ThisChar->name = (unsigned char *) getmem(length+1);
-    strcpy((char *) ThisChar->name, (char *) CharName);
+    CHAR *ThisChar = getmem(sizeof(CHAR));
+    length         = strlen(CharName);
+    ThisChar->name = getmem(length+1);
+    strcpy(ThisChar->name, CharName);
     ThisChar->length= length;
     ThisChar->num=num;
     ThisChar->NextChar = TmpChar;
@@ -520,15 +514,15 @@ AddChar(CHAR *TmpChar, unsigned char *CharName, int num)
 }
 
 
-static void
-AddStr(unsigned char *name, int num)
+void AddStr(name, num)
+unsigned char *name ; int num ;
 {
     int length;
 
-    STRING *ThisStr = (STRING *) getmem(sizeof(STRING));
-    length         = strlen((char *) name);
-    ThisStr->name = (unsigned char *) getmem(length+1);
-    strcpy((char *) ThisStr->name, (char *) name);
+    STRING *ThisStr = getmem(sizeof(STRING));
+    length         = strlen(name);
+    ThisStr->name = getmem(length+1);
+    strcpy(ThisStr->name, name);
     ThisStr->num=num;
 
     ThisStr->NextStr = FirstStr;
@@ -538,8 +532,8 @@ AddStr(unsigned char *name, int num)
 
 /* We prepare own encoding vector for output */
 
-static void
-RevChar(CHAR *TmpChar)
+void RevChar(TmpChar)
+CHAR *TmpChar;
 {
     int i;
     CHAR *ThisChar = TmpChar;
@@ -552,7 +546,7 @@ RevChar(CHAR *TmpChar)
                  {
                     if (label[i].select==FLG_BINARY)
                     {
-                        CHAR *Rev_Char     = (CHAR *) getmem(sizeof(CHAR));
+                        CHAR *Rev_Char     = getmem(sizeof(CHAR));
                         Rev_Char->name     = ThisChar->name;
                         Rev_Char->num      = ThisChar->num;
 
@@ -568,8 +562,9 @@ RevChar(CHAR *TmpChar)
 
 /* And here we produce own resulting encoding vector for partial font */
 
-static void
-OutChar(CHAR *TmpChar, FILE *fout)
+void OutChar
+(TmpChar, fout)
+CHAR *TmpChar ; FILE *fout ;
 {
 
     CHAR *ThisChar = TmpChar;
@@ -578,11 +573,7 @@ OutChar(CHAR *TmpChar, FILE *fout)
     {
         CHAR *tm = ThisChar;
         if (ThisChar->num >= 0)
-#ifdef SHIFTLOWCHARS
-           fprintf(fout, "dup %d %s put\n",T1Char(ThisChar->num),ThisChar->name);
-#else
            fprintf(fout, "dup %d %s put\n",ThisChar->num,ThisChar->name);
-#endif
         ThisChar = ThisChar->NextChar;
         free(tm);
     }
@@ -595,8 +586,8 @@ OutChar(CHAR *TmpChar, FILE *fout)
 
 /* We prepare strings list for output */
 
-static void
-Reeverse(STRING *TmpStr)
+void Reeverse(TmpStr)
+STRING *TmpStr;
 {
 
     int tmp;
@@ -612,7 +603,7 @@ Reeverse(STRING *TmpStr)
 
         if(TmpStr->num < tmp)
         {
-            STRING *ThisStr   = (STRING *) getmem(sizeof(STRING));
+            STRING *ThisStr   = getmem(sizeof(STRING));
             ThisStr->name     = TmpStr->name;
 
             ThisStr->NextStr = RevStr;
@@ -625,8 +616,9 @@ Reeverse(STRING *TmpStr)
 
 /* And here we post strings to out */
 
-static void
-OutStr(STRING *TmpStr, FILE *fout)
+void OutStr
+(TmpStr, fout)
+STRING *TmpStr ; FILE *fout ;
 {
     STRING *ThisStr = TmpStr;
     if(encode==AFM_ENC)
@@ -646,15 +638,15 @@ OutStr(STRING *TmpStr, FILE *fout)
 
 
 
-static void
-PrintChar(CHAR *TmpChar)
+void PrintChar(TmpChar)
+CHAR *TmpChar;
 {
     CHAR *ThisChar = TmpChar;
     while (ThisChar != NULL)
     {
         if(ThisChar->choose==1)
         {
-            fprintf_str(stderr, " Debug: Char %d '%s'\n",
+            fprintf(stderr, " Debug: Char %d '%s'\n",
                     ThisChar->num,ThisChar->name);
         }
         ThisChar = ThisChar->NextChar;
@@ -663,8 +655,7 @@ PrintChar(CHAR *TmpChar)
 }
 
 
-static int
-ClearB(void)
+int ClearB()
 {
     CHAR *ThisChar = FirstCharB;
     while (ThisChar != NULL)
@@ -678,18 +669,19 @@ ClearB(void)
 /* We mark chars in encoding vector thanks same names from
 reencoding vector */
 
-static int
-ChooseChar(unsigned char *name, CHAR *TmpChar)
+int ChooseChar
+(name, TmpChar)
+unsigned char *name ; CHAR *TmpChar ;
 {
     int length;
     CHAR *ThisChar = TmpChar;
-    length=strlen((char *) name);
+    length=strlen(name);
     while (ThisChar != NULL)
     {
         CHAR *NextChar = ThisChar->NextChar;
         if(ThisChar->length==length)
         {
-            if (strcmp((char *) name, (char *) ThisChar->name) == 0)
+            if (strcmp(name, ThisChar->name) == 0)
             {
                 ThisChar->choose=1;
                 return  1;
@@ -701,14 +693,14 @@ ChooseChar(unsigned char *name, CHAR *TmpChar)
  *   O'Neill; bugs in application of fix due to me.
  */
         if (NextChar == 0) {
-           NextChar = (CHAR *) getmem(sizeof(CHAR));
-           NextChar->name = (unsigned char *) getmem(length + 1);
-           strcpy((char *) NextChar->name, (char *) name);
-           NextChar->length = length;
-           NextChar->num = -1;
-           NextChar->NextChar = 0;
-           NextChar->choose = 1;
-           ThisChar->NextChar = NextChar;
+           NextChar = getmem(sizeof(CHAR)) ;
+           NextChar->name = getmem(length + 1) ;
+           strcpy(NextChar->name, name) ;
+           NextChar->length = length ;
+           NextChar->num = -1 ;
+           NextChar->NextChar = 0 ;
+           NextChar->choose = 1 ;
+           ThisChar->NextChar = NextChar ;
         }
         ThisChar = NextChar;
     }
@@ -721,8 +713,9 @@ ChooseChar(unsigned char *name, CHAR *TmpChar)
 /* We find index in label array for char, wich is required
 for compose char, if it uses SEAC command */
 
-static int
-FindSeac(int num)
+int FindSeac
+(num)
+int num ;
 {
     int i;
 
@@ -737,10 +730,10 @@ FindSeac(int num)
 }
 
 
-static void ClearCW(CHAR *);
+void ClearCW();
 
-static int
-FindCharW(unsigned char *name, int length)
+int FindCharW(name, length)
+unsigned char *name ; int length ;
 {
     CHAR *ThisChar = FirstCharW;
 
@@ -765,7 +758,7 @@ FindCharW(unsigned char *name, int length)
 
         if(ThisChar->length==length)
         {
-            if (strcmp((char *) name, (char *) ThisChar->name) == 0)
+            if (strcmp(name, ThisChar->name) == 0)
             {
                 if(ThisChar->choose==1)
                 {
@@ -808,8 +801,9 @@ FindCharW(unsigned char *name, int length)
 }
 
 
-static void
-ClearCW(CHAR *ThisChar)
+void ClearCW
+(ThisChar)
+CHAR *ThisChar;
 {
 
         if (ThisChar == FirstCharW)
@@ -834,12 +828,13 @@ ClearCW(CHAR *ThisChar)
 /* We build temporary 'work' encoding vector only for searching
 needed chars */
 
-static int
-WorkVect(CHAR *TmpChar)
+int WorkVect
+(TmpChar)
+CHAR *TmpChar ;
 {
     while (TmpChar != NULL) {
         {
-            CHAR *ThisChar     = (CHAR *) getmem(sizeof(CHAR));
+            CHAR *ThisChar     = getmem(sizeof(CHAR));
             ThisChar->name     = TmpChar->name;
             ThisChar->length   = TmpChar->length;
             ThisChar->num      = TmpChar->num;
@@ -854,8 +849,7 @@ WorkVect(CHAR *TmpChar)
 }
 
 
-static void
-UnDefineCharsW(void)
+void UnDefineCharsW()
 {
     CHAR *ThisChar = FirstCharW;
     while (ThisChar != NULL)
@@ -868,8 +862,8 @@ UnDefineCharsW(void)
     CharCount = 0;
 }
 
-CHAR *
-UnDefineChars(CHAR *TmpChar)
+CHAR * UnDefineChars(TmpChar)
+CHAR *TmpChar;
 {
     CHAR *ThisChar = TmpChar;
     while (ThisChar != NULL)
@@ -886,8 +880,7 @@ UnDefineChars(CHAR *TmpChar)
 
 
 
-static void
-UnDefineStr(void)
+void UnDefineStr()
 {
     STRING *ThisStr = FirstStr;
     while (ThisStr != NULL)
@@ -906,8 +899,8 @@ UnDefineStr(void)
 /* We mark subroutines without charstring decrypting  */
 /*                                                    */
 
-static void
-ScanSubrs(int i)
+void ScanSubrs(i)
+int i ;
 {
     int err_num;
     int word_type = 0;
@@ -917,13 +910,13 @@ ScanSubrs(int i)
 
     len_dup = strlen(Dup);
 
-    for(; number <  keyword[i].oldnum + keyword[i].offset;)
+    for( ; number <  keyword[i].oldnum + keyword[i].offset;)
     {
         if((word_type=GetToken())>0)
         {
             if(word_type==2)
             {
-                if(!strcmp((char *) token,Dup))
+                if(!strcmp(token,Dup))
                 {
                     if(test==0)
                         test=1;
@@ -931,7 +924,7 @@ ScanSubrs(int i)
 
                     err_num=GetNum();
                     if(err_num<0)
-                      ;
+                        ;
                     else
                     {
                         if(err_num<4)
@@ -974,9 +967,8 @@ ScanSubrs(int i)
     }
 }
 
-static void
-ViewReturnCall(int num_err, int top, int *pstack,
-               int j, int depth)
+void ViewReturnCall(num_err, top, pstack, j, depth)
+int num_err ; int top ; int *pstack ; int j ; int depth ;
 {
     int k,m;
 
@@ -1020,7 +1012,7 @@ ViewReturnCall(int num_err, int top, int *pstack,
             {
                 if(TableCommand[k].code==*pstack)
                 {
-                    fprintf_str(stderr," %s",
+                    fprintf(stderr," %s",
                     TableCommand[k].command);
                     k=0;
                     break;
@@ -1039,20 +1031,21 @@ ViewReturnCall(int num_err, int top, int *pstack,
 /* We decrypt charstring  with recursive descent */
 /*                                               */
 
-static int
-DeCodeStr(int num, int numseac)
+int DeCodeStr
+(num, numseac)
+int num ; int numseac ;
 {
     unsigned int loccr;
     unsigned char byte;
-    static int j;
+    static int j ;
     int i;
     unsigned char jj,k;
     int tmpnum;
     int depth = 0;
     int num_err = 0;
     int len_str;
-    typetemp  BORLAND_HUGE   *loc;
-    typetemp  BORLAND_HUGE   *end_str;
+    typetemp  _HUGE   *loc;
+    typetemp  _HUGE   *end_str;
     int pstack[64];
     int last_subr;
 
@@ -1134,7 +1127,7 @@ DeCodeStr(int num, int numseac)
         {
             byte = CDeCrypt(*loc++, &loccr);
             if (byte > MAX_ESCAPE)
-                fprintf_str(stderr,
+                fprintf(stderr,
             "Error: not_defined_e%d in %s", byte, psfontfile);
             else
             {
@@ -1313,8 +1306,8 @@ DeCodeStr(int num, int numseac)
 /*                                        */
 
 
-static void
-ScanChars(int i)
+void ScanChars(i)
+int i;
 {
 
     int word_type=0;
@@ -1323,7 +1316,7 @@ ScanChars(int i)
     int max_num;
     int counter;
     int num_err = 0;
-    typetemp  BORLAND_HUGE   *tmptemp;
+    typetemp  _HUGE   *tmptemp;
 
 
     CharCount++;
@@ -1336,13 +1329,13 @@ ScanChars(int i)
         {
             if(word_type>=3)
             {
-                strcpy((char *) tmp_token, (char *) token);
-                str_len = strlen((char *) token);
+                strcpy(tmp_token, token);
+                str_len = strlen(token);
 
 
                 if(CharCount!=0)
                 {
-
+                    
                     num_err=FindCharW(token, str_len);
 
                     if(num_err==FLG_BINARY)
@@ -1357,14 +1350,14 @@ ScanChars(int i)
 
                         if(dd(D_VIEW_VECTOR)&&(num_err==-1))
                         {
-                            fprintf_str(stderr,
+                            fprintf(stderr,
                          " Debug: Char '%s' not used in WorkVector\n", token);
 
                         }
 #endif
                         if(word_type>3)
                         {
-                            if(strstr((char *) token, (char *) notdef)!=NULL)
+                            if(strstr(token, notdef)!=NULL)
                             {
                                 CharCount--;
                                 label[number].num = -2;
@@ -1405,7 +1398,7 @@ ScanChars(int i)
                         if(dd(D_CALL_SUBR))
                         {
                             if(num_err>0)
-                                fprintf_str(stderr,
+                                fprintf(stderr,
                             " Debug for Char '%s'\n", tmp_token);
                         }
 #endif
@@ -1419,7 +1412,7 @@ ScanChars(int i)
                 if(num_err<0)
                 {
                     ErrorOfScan(num_err);
-                    fprintf_str(stderr,"in Char string of '%s'", tmp_token);
+                    fprintf(stderr,"in Char string of '%s'", tmp_token);
                     exit(1);
                 }
                 number++;
@@ -1427,7 +1420,7 @@ ScanChars(int i)
         }
         else
         {
-            fprintf_str(stderr,
+            fprintf(stderr,
            "\n File <%s> ended before all chars have been found.", psfontfile);
 
             fprintf(stderr,
@@ -1437,7 +1430,7 @@ ScanChars(int i)
 
             if(tmp_token!=NULL)
             {
-                fprintf_str(stderr, "\n Last seen token was '%s'\n", tmp_token);
+                fprintf(stderr, "\n Last seen token was '%s'\n", tmp_token);
             }
             exit(1);
         }
@@ -1483,16 +1476,15 @@ ScanChars(int i)
     }
 }
 
-static void
-LastLook(void)
+void LastLook()
 {
     label[number].begin = temp;
     label[number].select = FLG_BINARY;
     number++;
 }
 
-static int
-FindKeyWord(int First_Key, int lastkey)
+int FindKeyWord(First_Key, lastkey)
+int First_Key ; int lastkey ;
 {
     int word_type=0;
     int i;
@@ -1506,18 +1498,18 @@ FindKeyWord(int First_Key, int lastkey)
             {
                 for(i=First_Key; i<=lastkey; i++)
                 {
-                    if(!strcmp((char *) token, Key[i].name))
+                    if(!strcmp(token, Key[i].name))
                     {
                         tmp_num = GetNum();
                         if(tmp_num<0)
                         {
-                            fprintf_str(stderr,
+                            fprintf(stderr,
                             "\n ERROR: Number not found for '%s' in <%s>",
                             Key[i].name, psfontfile);
                             exit(1);
                         }
                         keyword[current].oldnum = tmp_num;
-                        keyword[current].length=strlen((char *) token);
+                        keyword[current].length=strlen(token);
                         keyword[current].begin=temp - keyword[current].length;
                         return i;
                     }
@@ -1526,11 +1518,11 @@ FindKeyWord(int First_Key, int lastkey)
         }
         else
         {
-            fprintf_str(stderr,
+            fprintf(stderr,
             "\n ERROR: In <%s> keyword not found:", psfontfile);
 
             for(i=First_Key; i<=lastkey; i++)
-                fprintf_str(stderr,"\n %dth > '%s' ",i,Key[i].name);
+                fprintf(stderr,"\n %dth > '%s' ",i,Key[i].name);
             exit(1);
         }
     }
@@ -1538,8 +1530,7 @@ FindKeyWord(int First_Key, int lastkey)
 
 /* To increase scan speed we use dynamic range of keywords */
 
-static int
-ScanBinary(void)
+int ScanBinary()
 {
     int i;
     int firstnum, lastnum;
@@ -1552,7 +1543,7 @@ ScanBinary(void)
     label[number].select = FLG_BINARY;
     offset= ++number;
 
-    for (current=0, FirstKey=current;; current++)
+    for (current=0, FirstKey=current ; ; current++)
     {
         i=FindKeyWord(firstnum,lastnum);
         switch(i)
@@ -1586,7 +1577,7 @@ ScanBinary(void)
                     for(i=0;i<=2;i++)
                     {
                         if(keyword[i].oldnum!=0)
-                            fprintf_str(stderr, " Result for <%s>:  %s  %d (instead %d) \n",
+                            fprintf(stderr, " Result for <%s>:  %s  %d (instead %d) \n",
                             psfontfile, Key[keyword[i].type].name,keyword[i].newnum, keyword[i].oldnum);
                     }
 
@@ -1597,8 +1588,9 @@ ScanBinary(void)
     }
 }
 
-static unsigned char *
-itoasp(int n, unsigned char *s, int len)
+unsigned char *itoasp
+(n, s, len)
+int n ; unsigned char *s ; int len ;
 {
     static int i, j;
 
@@ -1619,8 +1611,7 @@ itoasp(int n, unsigned char *s, int len)
     return NULL;
 }
 
-static void
-SubstNum(void)
+void SubstNum()
 {
     int i, j;
 
@@ -1636,8 +1627,8 @@ SubstNum(void)
     }
 }
 
-static ub4
-little4(ub1 *buff)
+ub4 little4(buff)
+ub1 *buff ;
 {
     return (ub4) buff[0] +
     ((ub4) buff[1] << 8) +
@@ -1649,8 +1640,8 @@ unsigned short int  c1 = C1, c2 = C2;
 unsigned short int edr;
 
 
-static unsigned char
-CDeCrypt(unsigned char cipher, unsigned int *lcdr)
+unsigned char CDeCrypt(cipher, lcdr)
+unsigned char cipher ; unsigned int *lcdr ;
 {
     register unsigned char plain;
 
@@ -1667,8 +1658,9 @@ unsigned short int eer;
 */
 
 
-static int
-EndOfEncoding(int err_num)
+int EndOfEncoding
+(err_num)
+int err_num;
 {
 
     int j;
@@ -1676,13 +1668,12 @@ EndOfEncoding(int err_num)
     int flg_get_word=0;
 
 
-    static const char *RefKey[] =
+    static char *RefKey[] =
     {
        "readonly",
        "getinterval",
-       "exch",
-       "def",
-       ""
+        "exch",
+         ""
     };
 
     for(;;)
@@ -1699,18 +1690,17 @@ EndOfEncoding(int err_num)
             return -1;
 
         if(err_num==5)
-            refer[ind_ref].num[i++]=atoi((char *) token);
+            refer[ind_ref].num[i++]=atoi(token);
         else
         {
             for(j=0; *RefKey[j]; j++)
             {
-                 if(strcmp((char *) token, RefKey[j]) ==0)
+                 if(strcmp(token, RefKey[j]) ==0)
                         break;
             }
             switch(j)
             {
                 case 0:
-                case 3:
                     find_encod=1;
                     keep_num = -2;
                     if(ind_ref!=0)
@@ -1728,7 +1718,7 @@ EndOfEncoding(int err_num)
                         refer[ind_ref].num[1] = 1;
                         refer[ind_ref].num[2] = refer[ind_ref].num[0];
                         GetWord(token);
-                        refer[ind_ref].num[0]= atoi((char *) token);
+                        refer[ind_ref].num[0]= atoi(token);
                     }
                     i=0;
                     refer[ind_ref].select=1;
@@ -1749,8 +1739,7 @@ EndOfEncoding(int err_num)
 in non StandardEncoding */
 
 
-static void
-CorrectGrid(void)
+void CorrectGrid()
 {
     int i, j, k, imax;
 
@@ -1770,19 +1759,16 @@ CorrectGrid(void)
 }
  /* We build vector for non StandardEncoding */
 
-static int
-CharEncoding(void)
+int CharEncoding()
 {
     int err_token=0;
     int num=0;
-    int seen = 0;
 
-    while (1) {
     err_token=GetWord(token);
 
     if(err_token==2)
     {
-        if(strcmp((char *) token, Dup) ==0)
+        if(strcmp(token, Dup) ==0)
         {
             err_token=GetWord(token);
             if(err_token<0)
@@ -1790,7 +1776,7 @@ CharEncoding(void)
 
             if(err_token!=2)       /* define "dup word" */
             {
-                num=atoi((char *) token);
+                num=atoi(token);
 
                 err_token=GetWord(token);
                 if(err_token<0)
@@ -1800,30 +1786,26 @@ CharEncoding(void)
                 FirstChar=AddChar(FirstChar,token, num);
                 keep_num=num;
                 keep_flg=1;
-                seen++;
-                err_token = GetWord(token);
+                return 1;
             }
-        } else {
-
-           if(keep_flg==1)
-           {
-               keep_num=FLG_OUT_STR;
-
-               if(EndOfEncoding(err_token)<0)
-               {
-                   return -1;
-               }
-           }
         }
-    } else
-       return seen;
+
+        if(keep_flg==1)
+        {
+            keep_num=FLG_OUT_STR;
+
+            if(EndOfEncoding(err_token)<0)
+            {
+                return -1;
+            }
+        }
     }
+    return 0;
 }
 
 
 
-static void
-FindEncoding(void)
+void FindEncoding()
 {
     int num_err=0;
     int tmpnum;
@@ -1837,7 +1819,7 @@ FindEncoding(void)
         {
             if(num_err==3)
             {
-                if (strcmp((char *) token,"/Encoding") == 0)
+                if (strcmp(token,"/Encoding") == 0)
                 {
 
                     tmpnum=GetWord(token);
@@ -1864,7 +1846,7 @@ FindEncoding(void)
         if(num_err<0)
         {
             ErrorOfScan(num_err);
-            fprintf_str(stderr,
+            fprintf(stderr,
             "\n ERROR in encoding vector in <%s>",  psfontfile);
             exit(1);
         }
@@ -1875,8 +1857,7 @@ FindEncoding(void)
 reencode them if there is reencoding vector for this case and
 build work vector */
 
-static void
-CheckChoosing(void)
+void CheckChoosing()
 {
 
     CHAR *TmpChar;
@@ -1894,7 +1875,7 @@ CheckChoosing(void)
         }
         else
         {
-            fprintf_str(stderr,
+            fprintf(stderr,
             "WARNING: '/Encoding' not found in <%s>\n", psfontfile);
             exit(1);
         }
@@ -1926,7 +1907,7 @@ CheckChoosing(void)
             fprintf(stderr,
             "\n Warning: after loading AFM file \n");
 
-            fprintf_str(stderr,
+            fprintf(stderr,
             " only %d chars found instead %d for <%s>\n",
             CharCount, GridCount, psfontfile);
         }
@@ -1945,7 +1926,7 @@ CheckChoosing(void)
             fprintf(stderr, " Encoding: not standard \n");
 
         if(reencode==FLG_REENCODE)
-            fprintf_str(stderr, " with reencode vector <%s>\n", psvectfile);
+            fprintf(stderr, " with reencode vector <%s>\n", psvectfile);
 
         PrintChar(FirstCharW);
     }
@@ -1953,28 +1934,8 @@ CheckChoosing(void)
 
 }
 
-/*
- *   As we write the output file, we search for /UniqueID, and if we find
- *   such, we munge it.  We need to do this because the font is only partial,
- *   and if we send out a valid UniqueID, this well may mess up future jobs
- *   that use this font, but characters that we do not include.  We munge
- *   the string from /UniqueID to /UniqueXX just to make it more clear
- *   what we've done.
- */
-
-static char *
-KillUnique(char *s)
-{
-   char *r = strstr(s, "/UniqueID");
-   if (r) {
-      r[7] = 'X';
-      r[8] = 'X';
-   }
-   return s;
-}
-
-static void
-OutASCII(FILE *fout, ub1 *buff, ub4 len)
+void OutASCII(fout, buff, len)
+FILE *fout ; ub1 *buff ; ub4 len ;
 {
     ub4 i;
 
@@ -1991,7 +1952,7 @@ OutASCII(FILE *fout, ub1 *buff, ub4 len)
                 FindEncoding();
             }
 
-            line=(unsigned char *) KillUnique((char *) tmpline);
+            line=tmpline;
 
             if(keep_flg==0)
                 fprintf(fout,"%s", line);
@@ -2015,8 +1976,8 @@ OutASCII(FILE *fout, ub1 *buff, ub4 len)
 
 /* It's eexec decription for PFB format */
 
-static void
-BinEDeCrypt(ub1 *buff, ub4 len)
+void BinEDeCrypt(buff, len)
+ub1 *buff ; ub4 len ;
 {
     ub4 i;
 
@@ -2030,8 +1991,8 @@ BinEDeCrypt(ub1 *buff, ub4 len)
 /* And  it's eexec decription for PFA format */
 
 
-static void
-HexEDeCrypt(unsigned char *mem)
+void HexEDeCrypt(mem)
+unsigned char *mem ;
 {
     int ch1, ch2, cipher;
 
@@ -2064,8 +2025,8 @@ HexEDeCrypt(unsigned char *mem)
     }
 }
 
-static int
-PartialPFA(FILE *fin, FILE *fout)
+int PartialPFA(fin, fout)
+FILE *fin ; FILE *fout ;
 {
     ub1  type;
     ub4 memory, addmemory, length, add_of_len;
@@ -2078,17 +2039,17 @@ PartialPFA(FILE *fin, FILE *fout)
     memory = BASE_MEM;
     addmemory= ADD_MEM;
     length=0;
-    temp=(typetemp *) UniGetMem(memory);
+    temp=UniGetMem(memory);
     begin_of_scan=temp;
 
     for(;;)
     {
-        if(fgets((char *)buf,BUFSIZ,fin)==NULL)
+        if(fgets(buf,BUFSIZ,fin)==NULL)
             break;
         switch (type)
         {
             case FLG_ASCII:
-                if(strstr((char *)buf,"currentfile eexec") != NULL)
+                if(strstr(buf,"currentfile eexec") != NULL)
                 {
                     type=FLG_BINARY;
                 }
@@ -2099,7 +2060,7 @@ PartialPFA(FILE *fin, FILE *fout)
                 }
 
                 if(keep_flg==0)
-                    fprintf(fout,"%s", KillUnique((char *)buf));
+                    fprintf(fout,"%s", buf);
                 else
                 {
                     AddStr(buf,keep_num);
@@ -2140,11 +2101,11 @@ PartialPFA(FILE *fin, FILE *fout)
 
                     OutHEX(fout);
                     UniFree(begin_of_scan);
-                    fprintf(fout, "%s", KillUnique((char*) buf));
+                    fprintf(fout, "%s", buf);
                     break;
                 }
 
-                add_of_len=strlen((char *) buf)/2;
+                add_of_len=strlen(buf)/2;
                 length=length + add_of_len;
 
                 if(length>memory)
@@ -2152,7 +2113,7 @@ PartialPFA(FILE *fin, FILE *fout)
                     memory = memory + addmemory;
 /* Using "memory = length;" retains minimum */
 /* of memory  but it will be more slowly    */
-                    begin_of_scan = (typetemp*) UniRealloc(begin_of_scan, memory);
+                    begin_of_scan = UniRealloc(begin_of_scan, memory);
                     temp = begin_of_scan + length - add_of_len;
                 }
                 HexEDeCrypt(buf);
@@ -2172,8 +2133,9 @@ PartialPFA(FILE *fin, FILE *fout)
 #define NEXT_BINARY     3
 #define NEXT_ASCII      4
 
-static int
-PartialPFB(FILE *fin, FILE *fout)
+int PartialPFB
+(fin, fout)
+FILE *fin ; FILE *fout ;
 {
     ub1  type;
     ub4  t_length, length, nread;
@@ -2249,7 +2211,7 @@ PartialPFB(FILE *fin, FILE *fout)
             if(sub_type == FIRST_BINARY)
             {
                 sub_type = NEXT_BINARY;
-                temp=(typetemp*) UniGetMem(t_length);
+                temp=UniGetMem(t_length);
                 begin_of_scan=temp;
             }
         }
@@ -2275,7 +2237,7 @@ PartialPFB(FILE *fin, FILE *fout)
 
                         OutChar(FirstCharW, fout);
                     }
-
+                        
                     Reeverse(FirstStr);
                     OutStr(RevStr, fout);
                 }
@@ -2312,12 +2274,13 @@ PartialPFB(FILE *fin, FILE *fout)
     }
 }
 
-static void
-OutHEX(FILE *fout)
+void OutHEX
+(fout)
+FILE *fout ;
 {
     int i=0;
     int num;
-    static const char *hexstr = "0123456789abcdef";
+    static char *hexstr = "0123456789abcdef" ;
     int bin;
 
     line=tmpline;
@@ -2363,8 +2326,7 @@ OutHEX(FILE *fout)
 /* We parse AFM file only if we've received errors after
 parsing of own vector */
 
-static int
-Afm(void)
+int Afm()
 {
     unsigned char afmfile[100];
     FILE  *fafm;
@@ -2372,21 +2334,21 @@ Afm(void)
     int i,j,k,num=0;
     unsigned char name[40];
 
-    static const char *AfmKey[] =
+    static char *AfmKey[] =
     {
         "StartCharMetrics",
         "EndCharMetrics",
             ""
     };
 
-    static const char *InfoKey[] =
+    static char *InfoKey[] =
     {
         "C",
         "N",
         ""
     };
 
-    for(i=0; psfontfile[i]; i++)
+    for(i=0; psfontfile[i] ; i++)
     {
         if(psfontfile[i] == '.')
             break;
@@ -2395,13 +2357,13 @@ Afm(void)
     }
 
     afmfile[i]='\0';
-    strcat((char *) afmfile,".afm");
-    fprintf_str(stderr, "<%s>", afmfile);
+    strcat(afmfile,".afm");
+    fprintf(stderr, "<%s>", afmfile);
 
-    if ((fafm = psfopen((char *) afmfile, "r")) == NULL)
+    if ((fafm = psfopen(afmfile, "r")) == NULL)
     {
         NameOfProgram();
-        perror((char *) afmfile);
+        perror(afmfile);
         return -1;
     }
 
@@ -2409,10 +2371,10 @@ Afm(void)
     {
         line = tmpline;
 
-        if(fgets((char *) line,BUFSIZ,fafm)==NULL)
+        if(fgets(line,BUFSIZ,fafm)==NULL)
             break;
 
-        if(strstr((char *) line, AfmKey[j])!=NULL)
+        if(strstr(line, AfmKey[j])!=NULL)
         {
             if(j==0)
             {
@@ -2433,12 +2395,12 @@ Afm(void)
                 err_num=GetWord(token);
                 if(err_num==2)
                 {
-                    if(strcmp((char *) token,InfoKey[k])==0)
+                    if(strcmp(token,InfoKey[k])==0)
                     {
                         if(k==0)
                         {
                             err_num=GetWord(token);
-                            num=atoi((char *) token);
+                            num=atoi(token);
                             k=1;
                             continue;
                         }
@@ -2447,7 +2409,7 @@ Afm(void)
                             err_num=GetWord(token);
                             name[0]='/';
                             name[1]='\0';
-                            strcat((char *) name, (char *) token);
+                            strcat(name,token);
                             if(num>=0)
                                 FirstCharA=AddChar(FirstCharA, name, num);
                             break;
@@ -2461,9 +2423,10 @@ Afm(void)
     return -2;
 }
 
-int
-FontPart(FILE *fout, unsigned char *fontfile,
-	 unsigned char *vectfile)
+int FontPart(fout, fontfile, vectfile )
+FILE *fout;
+unsigned char *fontfile;
+unsigned char *vectfile;
 {
     FILE  *fin=0;
     int   num;
@@ -2476,7 +2439,7 @@ FontPart(FILE *fout, unsigned char *fontfile,
     lastpart=0;
     keep_flg=0;
     flg_seac=0;
-    strcpy((char *) psfontfile, (char *) fontfile);
+    strcpy(psfontfile,fontfile);
     find_encod=0;
     CharCount=0;
 
@@ -2486,11 +2449,11 @@ FontPart(FILE *fout, unsigned char *fontfile,
               label[i].num=CHAR_NOT_DEF;
 
 
-        strcpy((char *) psvectfile, (char *) basevect);
+        strcpy(psvectfile, basevect);
 
 #ifdef DEBUG
         if(dd(D_VIEW_VECTOR))
-           fprintf_str(stderr, " Base vector <%s>.", basevect);
+           fprintf(stderr, " Base vector <%s>.", basevect);
 #endif
 
         if(LoadVector(1, FirstCharB)==1)
@@ -2505,7 +2468,7 @@ FontPart(FILE *fout, unsigned char *fontfile,
     if(vectfile)
     {
         reencode=FLG_REENCODE;
-        strcpy((char *) psvectfile, (char *) vectfile);
+        strcpy(psvectfile,vectfile);
     }
 
     for(num=0;num<NUM_LABEL;num++)
@@ -2514,41 +2477,41 @@ FontPart(FILE *fout, unsigned char *fontfile,
     switch(DefTypeFont(fontfile))
     {
         case PFA:
-            if ((fin = psfopen((char *) fontfile, "r"))==NULL)
+            if ((fin = psfopen(fontfile, "r"))==NULL)
             {
                 NameOfProgram();
-                perror((char *) fontfile);
+                perror(fontfile);
                 return -1;
             }
             rc = PartialPFA(fin,fout);
             if (rc == FALSE)
             {
                 NameOfProgram();
-                (void) fprintf_str(stderr,
+                (void) fprintf(stderr,
                 "Error: %s is not a valid PFA file\n", fontfile);
                 return -1;
             }
 
             break;
         case PFB:
-            if ((fin = psfopen((char *) fontfile, OPEN_READ_BINARY))==NULL)
+            if ((fin = psfopen(fontfile, OPEN_READ_BINARY))==NULL)
             {
                 NameOfProgram();
-                perror((char *) fontfile);
+                perror(fontfile);
                 return -1;
             }
             rc = PartialPFB(fin,fout);
             if (rc==FALSE)
             {
                 NameOfProgram();
-                (void) fprintf_str(stderr,
+                (void) fprintf(stderr,
                 "Error: %s is not a valid PFB file\n", fontfile);
                 return -1;
             }
             break;
         case -1:
             NameOfProgram();
-            fprintf_str(stderr,
+            fprintf(stderr,
             "Error: %s has neither PFA nor PFB extension", fontfile);
             return -1;
     }
@@ -2576,8 +2539,8 @@ FontPart(FILE *fout, unsigned char *fontfile,
 
 
 
-static int
-LoadVector(int num, CHAR *TmpChar)
+int LoadVector(num, TmpChar)
+int num ; CHAR *TmpChar ;
 {
 
     FILE  *fvect;
@@ -2588,10 +2551,10 @@ LoadVector(int num, CHAR *TmpChar)
 
     CharCount = 0;
 
-    if ((fvect = psfopen((char *) psvectfile, "r")) == NULL)
+    if ((fvect = psfopen(psvectfile, "r")) == NULL)
     {
         NameOfProgram();
-        perror((char *) psvectfile);
+        perror(psvectfile);
         return -1;
     }
 
@@ -2599,7 +2562,7 @@ LoadVector(int num, CHAR *TmpChar)
     {
         line = tmpline;
 
-        if((fgets((char*)line,BUFSIZ,fvect)==NULL)||(end_vect!=0))
+        if((fgets(line,BUFSIZ,fvect)==NULL)||(end_vect!=0))
             break;
 
         for(;;)
@@ -2621,7 +2584,7 @@ LoadVector(int num, CHAR *TmpChar)
                             CharCount++;
                         else
                         {
-                           fprintf_str(stderr,
+                           fprintf(stderr,
                "Error: '%s' not found in reencoding vector <%s> for <%s>\n",
                              token,psvectfile, psfontfile);
                         }
@@ -2654,7 +2617,7 @@ LoadVector(int num, CHAR *TmpChar)
         if((index_grid!=256)&&(CharCount!=256))
         {
             fclose(fvect);
-            fprintf_str(stderr,"Error during Load Vector in <%s>  \n",
+            fprintf(stderr,"Error during Load Vector in <%s>  \n",
             psvectfile);
             fprintf(stderr,
                     "Found %d chars instead 256\n", max(index_grid,CharCount));
@@ -2669,7 +2632,7 @@ LoadVector(int num, CHAR *TmpChar)
         else
         {
             fclose(fvect);
-            fprintf_str(stderr,
+            fprintf(stderr,
                      "\n Warning: Vector from <%s> for <%s> doesn't load\n",
             psvectfile, psfontfile);
             return -1;
@@ -2677,14 +2640,15 @@ LoadVector(int num, CHAR *TmpChar)
     }
     else
     {
-        fprintf_str(stderr,"\n Error: ending token 'def' not found in <%s> \n",
+        fprintf(stderr,"\n Error: ending token 'def' not found in <%s> \n",
         psvectfile);
         return -2;
     }
 }
 
-static int
-ChooseVect(CHAR *tmpChar)
+int ChooseVect
+(tmpChar)
+CHAR * tmpChar ;
 {
     CHAR *ThisChar = tmpChar;
 
@@ -2706,8 +2670,9 @@ ChooseVect(CHAR *tmpChar)
 
 }
 
-static void
-ErrorOfScan(int err)
+void ErrorOfScan
+(err)
+int err ;
 {
     switch(err)
     {
@@ -2743,8 +2708,7 @@ ErrorOfScan(int err)
     }
 }
 
-static void
-NameOfProgram(void)
+void NameOfProgram()
 {
 #ifdef DVIPS
     fprintf(stderr,"This is DVIPS, t1part module \n");
