@@ -17,14 +17,14 @@ LOCALDIR = /LocalLibrary/Fonts/TeXFonts
 # (private fonts are given an explicit directory, which overrides the path)
 #   overridden by the environment variable TEXFONTS
 # TFMPATH = $(LOCALDIR)/tfm:$(TEXDIR)/fonts/tfm
-TFMPATH = .:$(LOCALDIR)/tfm:$(TEXDIR)/fonts/tfm
+TFMPATH = $(HOME)/tex/TeXfonts
 
 # the default path to search for PK files (usually omits `.')
 # Don't forget to add the directory that
 # MakeTeXPK puts the files!  (In this case, /LocalLibrary/Fonts...)
 #   overridden by the environment variable TEXPKS or TEXPACKED or PKFONTS
 # PKPATH = $(LOCALDIR)/pk:$(TEXDIR)/fonts/pk
-PKPATH = .:$(LOCALDIR)/pk:$(TEXDIR)/fonts/pk
+PKPATH = $(TFMPATH)
 
 # the default path to search for VF files (usually omits `.')
 #   overridden by the environment variable VFFONTS
@@ -37,7 +37,7 @@ FONTSUBDIRPATH =
 
 # where the config files go
 # CONFIGDIR = $(TEXDIR)/ps
-CONFIGDIR = $(TEXDIR)/ps
+CONFIGDIR = $(HOME)/dvips
 
 # the default path to search for config files
 #   overridden by the environment variable TEXCONFIG
@@ -50,7 +50,7 @@ CONFIGFILE = config.ps
 
 # where the header PS files go
 # HEADERDIR = $(TEXDIR)/ps
-HEADERDIR = $(TEXDIR)/ps
+HEADERDIR = $(HOME)/dvips
 
 # the default path to search for header files
 # HEADERPATH = .:$(HEADERDIR)
@@ -94,7 +94,7 @@ OPT = -g -Wall -funsigned-char
 
 # libraries to include (-lm -lc on most systems)
 #FLIBS= -lNeXT_s -lsys_s
-FLIBS= -lNeXT_s -lsys_s
+FLIBS= -lm
 
 # If you are compiling dvips for suid or other privileges, you will
 # definitely want to define the following symbol; else don't.
@@ -144,7 +144,7 @@ OBJ = dospecial.o dviinput.o fontdef.o loadfont.o dvips.o tfmload.o \
 	pprescan.o papersiz.o flib.o color.o bbox.o emspecial.o t1part.o \
         hps.o
 
-all : afm2tfm dvips tex.pro texps.pro texc.pro special.pro finclude.pro \
+all : dvips tex.pro texps.pro texc.pro special.pro finclude.pro \
       color.pro crop.pro hps.pro
 
 dvips : $(OBJ)
