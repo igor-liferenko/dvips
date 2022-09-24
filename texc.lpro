@@ -54,7 +54,7 @@ TeXDict begin           % start using it.
 /isls false N
 /vsize 11 72 mul N
 /hsize 8.5 72 mul N
-/landplus90 { false } def % make this true to flip landscape
+/landplus90 { true } def % make this true to flip landscape
 
 /@rigin                 % -xps -yps @rigin -   establishes dvips conventions
   { isls { [ 0 landplus90 { 1 -1 } { -1 1 } ifelse 0 0 0 ] concat } if
