@@ -1,52 +1,52 @@
-omb10 <omb10.pfb
-ombx10 <ombx10.pfb
-ombx12 <ombx12.pfb
-ombx5 <ombx5.pfb
-ombx6 <ombx6.pfb
-ombx7 <ombx7.pfb
-ombx8 <ombx8.pfb
-ombx9 <ombx9.pfb
-ombxsl10 <ombxsl10.pfb
-ombxti10 <ombxti10.pfb
-omcsc10 <omcsc10.pfb
-omdunh10 <omdunh10.pfb
-omitt10 <omitt10.pfb
-omr10 <omr10.pfb
-omr12 <omr12.pfb
-omr17 <omr17.pfb
-omr5 <omr5.pfb
-omr6 <omr6.pfb
-omr7 <omr7.pfb
-omr8 <omr8.pfb
-omr9 <omr9.pfb
-omsl10 <omsl10.pfb
-omsl12 <omsl12.pfb
-omsl8 <omsl8.pfb
-omsl9 <omsl9.pfb
-omsltt10 <omsltt10.pfb
-omss10 <omss10.pfb
-omss12 <omss12.pfb
-omss17 <omss17.pfb
-omss8 <omss8.pfb
-omss9 <omss9.pfb
-omssbx10 <omssbx10.pfb
-omssdc10 <omssdc10.pfb
-omssi10 <omssi10.pfb
-omssi12 <omssi12.pfb
-omssi8 <omssi8.pfb
-omssi9 <omssi9.pfb
-omssq8 <omssq8.pfb
-omssqi8 <omssqi8.pfb
-omtex10 <omtex10.pfb
-omtex8 <omtex8.pfb
-omtex9 <omtex9.pfb
-omti10 <omti10.pfb
-omti12 <omti12.pfb
-omti7 <omti7.pfb
-omti8 <omti8.pfb
-omti9 <omti9.pfb
-omtt10 <omtt10.pfb
-omtt12 <omtt12.pfb
-omtt8 <omtt8.pfb
-omtt9 <omtt9.pfb
-omu10 <omu10.pfb
+ombxsl10 cmbxsl10 <cmbxsl10.pfb
+ombxti10 cmbxti10 <cmbxti10.pfb
+ombx10 cmbx10 <cmbx10.pfb
+ombx12 cmbx12 <cmbx12.pfb
+ombx5 cmbx5 <cmbx5.pfb
+ombx6 cmbx6 <cmbx6.pfb
+ombx7 cmbx7 <cmbx7.pfb
+ombx8 cmbx8 <cmbx8.pfb
+ombx9 cmbx9 <cmbx9.pfb
+omb10 cmb10 <cmb10.pfb
+omr10 cmr10 <cmr10.pfb
+omr12 cmr12 <cmr12.pfb
+omr17 cmr17 <cmr17.pfb
+omr6 cmr6 <cmr6.pfb
+omr7 cmr7 <cmr7.pfb
+omr8 cmr8 <cmr8.pfb
+omr9 cmr9 <cmr9.pfb
+omsl10 cmsl10 <cmsl10.pfb
+omsl12 cmsl12 <cmsl12.pfb
+omsl8 cmsl8 <cmsl8.pfb
+omsl9 cmsl9 <cmsl9.pfb
+omssbx10 cmssbx10 <cmssbx10.pfb
+omssdc10 cmssdc10 <cmssdc10.pfb
+omssi10 cmssi10 <cmssi10.pfb
+omssi12 cmssi12 <cmssi12.pfb
+omssi17 cmssi17 <cmssi17.pfb
+omssi8 cmssi8 <cmssi8.pfb
+omssi9 cmssi9 <cmssi9.pfb
+omssqi8 cmssqi8 <cmssqi8.pfb
+omssq8 cmssq8 <cmssq8.pfb
+omss10 cmss10 <cmss10.pfb
+omss12 cmss12 <cmss12.pfb
+omss17 cmss17 <cmss17.pfb
+omss8 cmss8 <cmss8.pfb
+omss9 cmss9 <cmss9.pfb
+omti10 cmti10 <cmti10.pfb
+omti12 cmti12 <cmti12.pfb
+omti7 cmti7 <cmti7.pfb
+omti8 cmti8 <cmti8.pfb
+omti9 cmti9 <cmti9.pfb
+omu10 cmu10 <cmu10.pfb
+omcsc10 cmcsc10 <cmcsc10.pfb
+omr5 cmr5 <cmr5.pfb
+omtex10 cmtex10 <cmtex10.pfb
+omtex8 cmtex8 <cmtex8.pfb
+omtex9 cmtex9 <cmtex9.pfb
+omitt10 cmitt10 <cmitt10.pfb
+omsltt10 cmsltt10 <cmsltt10.pfb
+omtt10 cmtt10 <cmtt10.pfb
+omtt12 cmtt12 <cmtt12.pfb
+omtt8 cmtt8 <cmtt8.pfb
+omtt9 cmtt9 <cmtt9.pfb
