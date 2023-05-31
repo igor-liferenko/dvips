@@ -1,8 +1,49 @@
-This is mirror of
+This is mirror of dvips/ from
 
     http://ftp.cs.stanford.edu/pub/dvips/dvips576.tar.gz
 
-with changes to:
+with the following changes to
 
-    Makefile
     config.ps
+    Makefile
+    texc.lpro
+    tex.lpro
+
+--- config.ps
++++ config.ps
+@@ -5 +5 @@
+-m 1000000
++m 100000000
+
+--- Makefile
++++ Makefile
+@@ -20 +20 @@
+-TFMPATH = .:$(LOCALDIR)/tfm:$(TEXDIR)/fonts/tfm
++TFMPATH = $(HOME)/tex/TeXfonts
+@@ -27 +27 @@
+-PKPATH = .:$(LOCALDIR)/pk:$(TEXDIR)/fonts/pk
++PKPATH = $(TFMPATH)
+@@ -40 +40 @@
+-CONFIGDIR = $(TEXDIR)/ps
++CONFIGDIR = $(HOME)/dvips
+@@ -53 +53 @@
+-HEADERDIR = $(TEXDIR)/ps
++HEADERDIR = $(HOME)/dvips
+@@ -97 +97 @@
+-FLIBS= -lNeXT_s -lsys_s
++FLIBS= -lm
+@@ -147 +147 @@
+-all : afm2tfm dvips tex.pro texps.pro texc.pro special.pro finclude.pro \
++all : dvips tex.pro texps.pro texc.pro special.pro finclude.pro \
+
+--- texc.lpro
++++ texc.lpro
+@@ -57 +57 @@
+-/landplus90 { false } def % make this true to flip landscape
++/landplus90 { true } def % make this true to flip landscape
+
+--- tex.lpro
++++ tex.lpro
+@@ -57 +57 @@
+-/landplus90 { false } def % make this true to flip landscape
++/landplus90 { true } def % make this true to flip landscape
