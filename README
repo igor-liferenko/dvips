@@ -28,7 +28,7 @@ with the following changes to
 +CONFIGDIR = $(HOME)/dvips/dvips
 @@ -53 +53 @@
 -HEADERDIR = $(TEXDIR)/ps
-+HEADERDIR = $(HOME)/dvips
++HEADERDIR = $(HOME)/dvips/dvips
 @@ -97 +97 @@
 -FLIBS= -lNeXT_s -lsys_s
 +FLIBS= -lm

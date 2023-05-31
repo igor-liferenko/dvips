@@ -50,7 +50,7 @@ CONFIGFILE = config.ps
 
 # where the header PS files go
 # HEADERDIR = $(TEXDIR)/ps
-HEADERDIR = $(HOME)/dvips
+HEADERDIR = $(HOME)/dvips/dvips
 
 # the default path to search for header files
 # HEADERPATH = .:$(HEADERDIR)
