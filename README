@@ -22,7 +22,7 @@ with the following changes to
 +TFMPATH = $(HOME)/tex/TeXfonts
 @@ -27 +27 @@
 -PKPATH = .:$(LOCALDIR)/pk:$(TEXDIR)/fonts/pk
-+PKPATH = $(TFMPATH)
++PKPATH = $(TFMPATH)/mode
 @@ -40 +40 @@
 -CONFIGDIR = $(TEXDIR)/ps
 +CONFIGDIR = $(HOME)/dvips

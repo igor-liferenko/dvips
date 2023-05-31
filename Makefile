@@ -24,7 +24,7 @@ TFMPATH = $(HOME)/tex/TeXfonts
 # MakeTeXPK puts the files!  (In this case, /LocalLibrary/Fonts...)
 #   overridden by the environment variable TEXPKS or TEXPACKED or PKFONTS
 # PKPATH = $(LOCALDIR)/pk:$(TEXDIR)/fonts/pk
-PKPATH = $(TFMPATH)
+PKPATH = $(TFMPATH)/mode
 
 # the default path to search for VF files (usually omits `.')
 #   overridden by the environment variable VFFONTS
