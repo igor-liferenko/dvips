@@ -37,7 +37,7 @@ FONTSUBDIRPATH =
 
 # where the config files go
 # CONFIGDIR = $(TEXDIR)/ps
-CONFIGDIR = $(HOME)/dvips
+CONFIGDIR = $(HOME)/dvips/dvips
 
 # the default path to search for config files
 #   overridden by the environment variable TEXCONFIG

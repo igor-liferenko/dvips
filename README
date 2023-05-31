@@ -25,7 +25,7 @@ with the following changes to
 +PKPATH = $(TFMPATH)/mode
 @@ -40 +40 @@
 -CONFIGDIR = $(TEXDIR)/ps
-+CONFIGDIR = $(HOME)/dvips
++CONFIGDIR = $(HOME)/dvips/dvips
 @@ -53 +53 @@
 -HEADERDIR = $(TEXDIR)/ps
 +HEADERDIR = $(HOME)/dvips
