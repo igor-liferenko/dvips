@@ -131,6 +131,7 @@ char *fliname = FLINAME ;     /* pointer to names of fli files */
 #endif
 integer swmem ;               /* font memory in the PostScript printer */
 int quiet ;                   /* should we only print errors to stderr? */
+int showpk;
 int filter ;                  /* act as filter default output to stdout,
                                                default input to stdin? */
 int prettycolumn ;            /* the column we are at when running pretty */
@@ -810,8 +811,7 @@ case 'z':
                break ;
 #endif
 case '?':
-               (void)fprintf(stderr, banner) ;
-               help() ;
+               showpk = 1;
                break ;
 default:
                error(

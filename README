@@ -8,6 +8,8 @@ with the following changes to
     Makefile
     texc.lpro
     tex.lpro
+    dvips.c
+    loadfont.c
 
 --- config.ps
 +++ config.ps
@@ -47,3 +49,20 @@ with the following changes to
 @@ -57 +57 @@
 -/landplus90 { false } def % make this true to flip landscape
 +/landplus90 { true } def % make this true to flip landscape
+
+--- dvips.c
++++ dvips.c
+@@ -133,0 +134 @@
++int showpk;
+@@ -813,2 +814 @@
+-               (void)fprintf(stderr, banner) ;
+-               help() ;
++               showpk = 1;
+
+--- loadfont.c
++++ loadfont.c
+@@ -271,0 +272 @@
++extern int showpk;
+@@ -310 +311 @@
+-   if (dd(D_FONTS))
++   if (showpk)

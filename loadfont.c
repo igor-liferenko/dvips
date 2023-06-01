@@ -269,6 +269,7 @@ pkopen(fd)
  *   to reserve for the character.  (It's returned in the font
  *   structure, along with everything else.)
  */
+extern int showpk;
 void
 loadfont(curfnt)
         register fontdesctype *curfnt ;
@@ -307,7 +308,7 @@ loadfont(curfnt)
       return ;
    }
 #ifdef DEBUG
-   if (dd(D_FONTS))
+   if (showpk)
       (void)fprintf(stderr,"Loading pk font %s at %.1fpt\n",
          name, (real)scaledsize/(alpha*0x100000)) ;
 #endif /* DEBUG */
