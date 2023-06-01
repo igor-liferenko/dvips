@@ -2,7 +2,7 @@ This is mirror of dvips/ from
 
     http://ftp.cs.stanford.edu/pub/dvips/dvips576.tar.gz
 
-with the following changes to
+with changes to
 
     config.ps
     Makefile
@@ -10,6 +10,15 @@ with the following changes to
     tex.lpro
     dvips.c
     loadfont.c
+
+Installation:
+1) download this to ~/dvips/ with name dvips and
+   make as many copies as you use modes with names of modes
+2) in each directory with name of mode edit Makefile to use
+   name of corresponding mode instead of 'mode'
+3) run make in each directory
+
+==============================================================
 
 --- config.ps
 +++ config.ps
