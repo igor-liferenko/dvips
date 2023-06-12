@@ -8,15 +8,6 @@ with changes to
     Makefile
     texc.lpro
     tex.lpro
-    dvips.c
-    loadfont.c
-
-Installation:
-1) download this to ~/dvips/ with name dvips and
-   make as many copies as you use modes with names of modes
-2) in each directory with name of mode edit Makefile to use
-   name of corresponding mode instead of 'mode'
-3) run make in each directory
 
 ==============================================================
 
@@ -28,18 +19,6 @@ Installation:
 
 --- Makefile
 +++ Makefile
-@@ -20 +20 @@
--TFMPATH = .:$(LOCALDIR)/tfm:$(TEXDIR)/fonts/tfm
-+TFMPATH = $(HOME)/tex/TeXfonts
-@@ -27 +27 @@
--PKPATH = .:$(LOCALDIR)/pk:$(TEXDIR)/fonts/pk
-+PKPATH = $(TFMPATH)/mode
-@@ -40 +40 @@
--CONFIGDIR = $(TEXDIR)/ps
-+CONFIGDIR = $(HOME)/dvips/dvips
-@@ -53 +53 @@
--HEADERDIR = $(TEXDIR)/ps
-+HEADERDIR = $(HOME)/dvips/dvips
 @@ -97 +97 @@
 -FLIBS= -lNeXT_s -lsys_s
 +FLIBS= -lm
@@ -58,20 +37,3 @@ Installation:
 @@ -57 +57 @@
 -/landplus90 { false } def % make this true to flip landscape
 +/landplus90 { true } def % make this true to flip landscape
-
---- dvips.c
-+++ dvips.c
-@@ -133,0 +134 @@
-+int showpk;
-@@ -813,2 +814 @@
--               (void)fprintf(stderr, banner) ;
--               help() ;
-+               showpk = 1;
-
---- loadfont.c
-+++ loadfont.c
-@@ -271,0 +272 @@
-+extern int showpk;
-@@ -310 +311 @@
--   if (dd(D_FONTS))
-+   if (showpk)
