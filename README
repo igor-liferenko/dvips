@@ -2,14 +2,10 @@ This is mirror of dvips/ from
 
     http://ftp.cs.stanford.edu/pub/dvips/dvips576.tar.gz
 
-with changes to
+This is newest version of dvips not using kpathsea library - I failed
+to build dvips from texlive sources without kpathsea library.
 
-    config.ps
-    Makefile
-    texc.lpro
-    tex.lpro
-
-==============================================================
+The following changes are made:
 
 --- config.ps
 +++ config.ps
