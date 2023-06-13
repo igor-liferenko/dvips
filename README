@@ -4,7 +4,7 @@ This is mirror of dvips/ from
 
 This is newest version of dvips not using kpathsea library - I failed
 to build dvips from texlive sources without kpathsea library.
-(If I will do this, delete j0 from config.t1 in lhplain repo.)
+(If I will do this, delete j0 from config.t1 in repo with dvipdf.)
 
 The following changes are made:
 
