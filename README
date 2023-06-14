@@ -2,11 +2,13 @@ This is mirror of dvips/ from
 
     http://ftp.cs.stanford.edu/pub/dvips/dvips576.tar.gz
 
-This is newest version of dvips not using kpathsea library - I failed
-to build dvips from texlive sources without kpathsea library.
-(If I will do this, delete j0 from config.t1 in repo with dvipdf.)
-
 The following changes are made:
+
+--- Makefile
++++ Makefile
+@@ -97 +97 @@
+-FLIBS= -lNeXT_s -lsys_s
++FLIBS= -lm
 
 --- config.ps
 +++ config.ps
@@ -14,23 +16,14 @@ The following changes are made:
 -m 1000000
 +m 100000000
 
---- Makefile
-+++ Makefile
-@@ -97 +97 @@
--FLIBS= -lNeXT_s -lsys_s
-+FLIBS= -lm
-@@ -147 +147 @@
--all : afm2tfm dvips tex.pro texps.pro texc.pro special.pro finclude.pro \
-+all : dvips tex.pro texps.pro texc.pro special.pro finclude.pro \
-
---- texc.lpro
-+++ texc.lpro
+--- tex.lpro
++++ tex.lpro
 @@ -57 +57 @@
 -/landplus90 { false } def % make this true to flip landscape
 +/landplus90 { true } def % make this true to flip landscape
 
---- tex.lpro
-+++ tex.lpro
+--- texc.lpro
++++ texc.lpro
 @@ -57 +57 @@
 -/landplus90 { false } def % make this true to flip landscape
 +/landplus90 { true } def % make this true to flip landscape
