@@ -1,0 +1,7 @@
+dvips behaves the following way:
+
+If MakeTeXPK fails, all the rest non-found fonts are
+just reported as errors on terminal (and in
+missfont.log) - MakeTeXPK is never called again
+(as if dvips was called with -M option - see
+loadfont.c:177)
