@@ -1,6 +1,29 @@
-dvips behaves the following way:
+This is mirror of dvips/ from
 
-If MakeTeXPK fails, all the rest non-found fonts are
-just reported as errors on terminal (and in
-missfont.log) - MakeTeXPK is never called again
-(see loadfont.c:177).
+    http://ftp.cs.stanford.edu/pub/dvips/dvips576.tar.gz
+
+The following changes are made (+ see mytex/MakeTeXPK):
+
+--- Makefile
++++ Makefile
+@@ -97 +97 @@
+-FLIBS= -lNeXT_s -lsys_s
++FLIBS= -lm
+
+--- config.ps
++++ config.ps
+@@ -5 +5 @@
+-m 1000000
++m 100000000
+
+--- tex.lpro
++++ tex.lpro
+@@ -57 +57 @@
+-/landplus90 { false } def % make this true to flip landscape
++/landplus90 { true } def % make this true to flip landscape
+
+--- texc.lpro
++++ texc.lpro
+@@ -57 +57 @@
+-/landplus90 { false } def % make this true to flip landscape
++/landplus90 { true } def % make this true to flip landscape
