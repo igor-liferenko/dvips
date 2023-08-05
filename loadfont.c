@@ -259,7 +259,7 @@ pkopen(fd)
    (void)sprintf(errbuf,
       "Font %s%s not found, characters will be left blank.",
       fd->area, name) ;
-   error(errbuf) ;
+//   error(errbuf) ;
    return(0) ;
 }
 

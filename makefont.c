@@ -297,7 +297,7 @@ default:    *q++ = *p ;
          if (fontlog != 0) {
             (void)fprintf(stderr,
 #ifndef VMCMS
-                  "Appending font creation commands to missfont.log\n") ;
+                  "") ;
 #else
   "\nMissing font data will be passed to DVIPS EXEC via MISSFONT LOG\n");
 #endif
