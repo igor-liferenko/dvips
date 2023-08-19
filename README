@@ -2,7 +2,7 @@ This is mirror of dvips/ from
 
     http://ftp.cs.stanford.edu/pub/dvips/dvips576.tar.gz
 
-The following changes are made (+ see mytex/MakeTeXPK):
+The following changes are made (+ see mytex/MakeTeXPK and lhplain/dvipdf):
 
 --- Makefile
 +++ Makefile
