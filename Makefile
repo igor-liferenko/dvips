@@ -144,7 +144,7 @@ OBJ = dospecial.o dviinput.o fontdef.o loadfont.o dvips.o tfmload.o \
 	pprescan.o papersiz.o flib.o color.o bbox.o emspecial.o t1part.o \
         hps.o
 
-all : dvips tex.pro texps.pro texc.pro special.pro finclude.pro \
+all :         dvips tex.pro texps.pro texc.pro special.pro finclude.pro \
       color.pro crop.pro hps.pro
 
 dvips : $(OBJ)
