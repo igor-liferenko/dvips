@@ -245,7 +245,7 @@ char  *GetKeyVal(str,tno) /* returns NULL if none found, else next scan point */
    char *str ; /* starting point for scan */
    int  *tno ; /* table entry number of keyword, or -1 if keyword not found */
 {
-   unsigned char *s ; // allow non-ascii psfile name (fixed in official repo)
+   register char *s ;
    register int i ;
    register char t ;
 
