@@ -1063,8 +1063,10 @@ sectiontype *sect ;
       if (tryepsf && isepsf == 0)
          error("We tried, but couldn't make it EPSF.") ;
       (void)fprintf(bitfile, "%%%%Creator: %s", banner + 8) ;
-      if (*iname)
-         (void)fprintf(bitfile, "%%%%Title: %s\n", iname) ;
+// see lhplain/dvipdf
+// TODO: instead of commenting-out this code, delete this from generated ps-file in lhplain/dvipdf
+//    if (*iname)
+//       (void)fprintf(bitfile, "%%%%Title: %s\n", iname) ;
 #ifdef CREATIONDATE
       jobtime=time(0);
       (void)fprintf(bitfile, "%%%%CreationDate: %s",
